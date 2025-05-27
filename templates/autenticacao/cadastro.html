@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Conta</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #c9b3d4;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background-color: white;
+            width: 500px;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            font-size: 22px;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        .campo {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            background-color: #f9f9f9;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #999;
+            background-color: white;
+        }
+
+        .botao {
+            width: 100%;
+            padding: 12px;
+            background-color: #f5a3b8;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .botao:hover {
+            background-color: #f291a8;
+        }
+
+        .texto-info {
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+            margin: 25px 0;
+            line-height: 1.5;
+        }
+
+        .link-login {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .link-login a {
+            color: #f291a8;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .link-login a:hover {
+            text-decoration: underline;
+        }
+
+        .erro {
+            background-color: #ffe6e6;
+            color: #cc0000;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #cc0000;
+        }
+
+        .sucesso {
+            background-color: #e6ffe6;
+            color: #006600;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #006600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Cadastro de Conta</h1>
+        
+        {% if erro %}
+        <div class="erro">{{ erro }}</div>
+        {% endif %}
+
+        {% if sucesso %}
+        <div class="sucesso">{{ sucesso }}</div>
+        {% endif %}
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="campo">
+                <label for="nome">Nome Completo</label>
+                <input type="text" id="nome" name="nome" required>
+            </div>
+
+            <div class="campo">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+
+            <div class="campo">
+                <label for="senha">Senha de Acesso</label>
+                <input type="password" id="senha" name="senha" required>
+            </div>
+
+            <button type="submit" class="botao">Cadastrar</button>
+        </form>
+
+        <p class="texto-info">
+            Seja bem-vindo ao gerente de contas da loja - Crie sua conta
+            <br> para começar a aproveitar produtos
+        </p>
+
+        <div class="link-login">
+            <a href="{% url 'login' %}">Já tem conta? Fazer Login</a>
+        </div>
+    </div>
+</body>
+</html>
