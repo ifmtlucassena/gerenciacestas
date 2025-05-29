@@ -49,7 +49,7 @@ def visualizarTelaCadastro(request):
             cursor.close()
             conexao.close()
 
-            return render(request, 'autenticacao/cadastro.html',{
+            return render(request, 'autenticacao/login.html',{
                 'sucesso': 'Cadastro realizado com sucesso! Você já pode fazer login.'
             })
         except Exception as e:
@@ -60,4 +60,41 @@ def visualizarTelaCadastro(request):
     return render(request, 'autenticacao/cadastro.html')
 
 def visualizarTelaLogin(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        senha = request.POST.get('senha')
+
+        if not email or not senha:
+            return render(request, 'autenticacao/login.html',{
+                'erro': 'Todos os campos são obrigatórios'
+            })
+        
+        try:
+            conexao = conectar_banco()
+            cursor = conexao.cursor()
+            senha_hash = hashlib.sha256(senha.encode()).hexdigest()
+            print(senha_hash)
+
+            cursor.execute(
+                "SELECT id_usuario FROM usuario WHERE email = %(email)s AND senha = %(senha)s",
+                {
+                    'email': email,
+                    'senha': senha_hash
+                 }
+            )
+
+            if cursor.fetchone():
+                cursor.close()
+                conexao.close()
+                return render(request, 'autenticacao/login.html',{
+                    'sucesso': 'Logado com sucesso'
+                })
+            return render(request, 'autenticacao/login.html',{
+                'erro': 'Email ou senha estão erradas!!'
+            })
+        except Exception as e:
+            return render(request, 'autenticacao/login.html',{
+                'erro': f'Erro ao Logar: {str(e)}'
+            })
+
     return render(request, 'autenticacao/login.html')
