@@ -3,9 +3,8 @@ from django.shortcuts import render
 from autenticacao.database import conectar_banco
 
 def visualizarTelaCadastro(request):
-    # Se já está logado, vai direto para o dashboard
-    if 'usuario_id' in request.session:
-        nome_usuario = request.session.get('usuario_nome', 'Usuário')
+    if 'id_usuario' in request.session:
+        nome_usuario = request.session.get('nome', 'Usuário')
         return render(request, 'dashboard/index.html', {
             'nome_usuario': nome_usuario
         })
@@ -67,8 +66,8 @@ def visualizarTelaCadastro(request):
     return render(request, 'autenticacao/cadastro.html')
 
 def visualizarTelaLogin(request):
-    if 'usuario_id' in request.session:
-        nome_usuario = request.session.get('usuario_nome', 'Usuário')
+    if 'id_usuario' in request.session:
+        nome_usuario = request.session.get('nome', 'Usuário')
         return render(request, 'dashboard/index.html', {
             'nome_usuario': nome_usuario
         })
@@ -97,15 +96,17 @@ def visualizarTelaLogin(request):
 
             usuario = cursor.fetchone()
             if usuario:
-
+                # Salva na sessão
                 request.session['id_usuario'] = usuario[0]
                 request.session['nome'] = usuario[1]
                 
                 cursor.close()
                 conexao.close()
             
+                # ✅ CORREÇÃO: Sempre pegar da sessão, nunca direto do banco
+                nome_usuario = request.session.get('nome', 'Usuário')
                 return render(request, 'dashboard/index.html', {
-                    'nome_usuario': usuario[1]
+                    'nome_usuario': nome_usuario
                 })
             
             cursor.close()
