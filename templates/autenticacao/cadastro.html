@@ -133,7 +133,7 @@
         <div class="sucesso">{{ sucesso }}</div>
         {% endif %}
         
-        <form method="post">
+        <form action="{% url 'cadastro' %}" method="POST">
             {% csrf_token %}
             <div class="campo">
                 <label for="nome">Nome Completo</label>

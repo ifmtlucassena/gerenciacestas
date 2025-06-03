@@ -17,7 +17,23 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
+from django.contrib import admin
+from django.urls import include, path
+from django.shortcuts import render
+
+def verificar_acesso(request):
+    if 'id_usuario' in request.session:
+        nome_usuario = request.session.get('nome', 'Usuário')
+        return render(request, 'dashboard/index.html', {
+            'nome_usuario': nome_usuario
+        })
+    else:
+        return render(request, 'autenticacao/login.html')
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('autenticacao.urls'))
+    path('', verificar_acesso),
+    path('auth/', include('autenticacao.urls')),
+    path('dashboard/', include('dashboard.urls')),
 ]
+

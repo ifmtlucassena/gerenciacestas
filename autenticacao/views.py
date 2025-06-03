@@ -3,6 +3,13 @@ from django.shortcuts import render
 from autenticacao.database import conectar_banco
 
 def visualizarTelaCadastro(request):
+    # Se já está logado, vai direto para o dashboard
+    if 'usuario_id' in request.session:
+        nome_usuario = request.session.get('usuario_nome', 'Usuário')
+        return render(request, 'dashboard/index.html', {
+            'nome_usuario': nome_usuario
+        })
+    
     if request.method == 'POST':
         nome = request.POST.get('nome')
         email = request.POST.get('email')
@@ -60,37 +67,51 @@ def visualizarTelaCadastro(request):
     return render(request, 'autenticacao/cadastro.html')
 
 def visualizarTelaLogin(request):
+    if 'usuario_id' in request.session:
+        nome_usuario = request.session.get('usuario_nome', 'Usuário')
+        return render(request, 'dashboard/index.html', {
+            'nome_usuario': nome_usuario
+        })
+    
     if request.method == 'POST':
         email = request.POST.get('email')
         senha = request.POST.get('senha')
 
         if not email or not senha:
             return render(request, 'autenticacao/login.html',{
-                'erro': 'Todos os campos são obrigatórios'
+                'erro': 'Todos os campos são obrigatórios!'
             })
         
         try:
             conexao = conectar_banco()
             cursor = conexao.cursor()
             senha_hash = hashlib.sha256(senha.encode()).hexdigest()
-            print(senha_hash)
 
             cursor.execute(
-                "SELECT id_usuario FROM usuario WHERE email = %(email)s AND senha = %(senha)s",
+                "SELECT id_usuario, nome FROM usuario WHERE email = %(email)s AND senha = %(senha)s",
                 {
                     'email': email,
                     'senha': senha_hash
                  }
             )
 
-            if cursor.fetchone():
+            usuario = cursor.fetchone()
+            if usuario:
+
+                request.session['id_usuario'] = usuario[0]
+                request.session['nome'] = usuario[1]
+                
                 cursor.close()
                 conexao.close()
-                return render(request, 'autenticacao/login.html',{
-                    'sucesso': 'Logado com sucesso'
+            
+                return render(request, 'dashboard/index.html', {
+                    'nome_usuario': usuario[1]
                 })
+            
+            cursor.close()
+            conexao.close()
             return render(request, 'autenticacao/login.html',{
-                'erro': 'Email ou senha estão erradas!!'
+                'erro': 'Email ou senha estão erradas!'
             })
         except Exception as e:
             return render(request, 'autenticacao/login.html',{

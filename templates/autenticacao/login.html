@@ -134,7 +134,7 @@
         {% endif %}
 
         
-        <form method="post">
+        <form action="{% url 'login' %}" method="POST">
             {% csrf_token %}
             <div class="campo">
                 <label for="email">Email</label>
