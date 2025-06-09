@@ -1,4 +1,382 @@
 {% extends 'base.html' %}
+
 {% block content %}
-    Seja bem vindo!! {{ nome_usuario }}
+<style>
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px;
+    }
+
+    .page-header {
+        margin-bottom: 32px;
+    }
+
+    .page-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 4px;
+    }
+
+    .page-subtitle {
+        color: #6c757d;
+        font-size: 14px;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        margin-bottom: 32px;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        position: relative;
+    }
+
+    .stat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 8px;
+    }
+
+    .stat-title {
+        font-size: 14px;
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    .stat-icon {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+    }
+
+    .stat-number {
+        font-size: 28px;
+        font-weight: 700;
+        color: #212529;
+        margin-bottom: 4px;
+    }
+
+    .stat-description {
+        font-size: 12px;
+        color: #6c757d;
+    }
+
+    .financial-section {
+        margin-bottom: 32px;
+    }
+
+    .section-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 16px;
+    }
+
+    .financial-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+
+    .financial-card {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+    }
+
+    .financial-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .financial-icon {
+        width: 24px;
+        height: 24px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+    }
+
+    .financial-title {
+        font-size: 14px;
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    .financial-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #212529;
+    }
+
+    .tables-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .table-card {
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        overflow: hidden;
+    }
+
+    .table-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .table-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #212529;
+    }
+
+    .badge {
+        background-color: #dc3545;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .table {
+        width: 100%;
+    }
+
+    .table th {
+        padding: 12px 20px;
+        text-align: left;
+        font-size: 12px;
+        color: #6c757d;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .table td {
+        padding: 12px 20px;
+        font-size: 14px;
+        color: #212529;
+        border-bottom: 1px solid #f8f9fa;
+    }
+
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .stock-badge {
+        background-color: #dc3545;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    @media (max-width: 968px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .financial-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .tables-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="container">
+    <div class="page-header">
+        <h1 class="page-title">Bem-vindo ao Painel de Controle</h1>
+        <p class="page-subtitle">Confira os principais números do seu sistema</p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-header">
+                <span class="stat-title">Total de Produtos</span>
+                <div class="stat-icon" style="background-color: #e3f2fd; color: #1976d2;">📦</div>
+            </div>
+            <div class="stat-number">34</div>
+            <div class="stat-description">Produtos cadastrados no sistema</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <span class="stat-title">Categorias</span>
+                <div class="stat-icon" style="background-color: #f3e5f5; color: #7b1fa2;">📂</div>
+            </div>
+            <div class="stat-number">7</div>
+            <div class="stat-description">Categorias de produtos</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <span class="stat-title">Cestas Montadas</span>
+                <div class="stat-icon" style="background-color: #e8f5e8; color: #388e3c;">🧺</div>
+            </div>
+            <div class="stat-number">5</div>
+            <div class="stat-description">Cestas e tábuas personalizadas</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <span class="stat-title">Estoque Baixo</span>
+                <div class="stat-icon" style="background-color: #fff3e0; color: #f57c00;">⚠️</div>
+            </div>
+            <div class="stat-number">5</div>
+            <div class="stat-description">Produtos com menos de 5 unidades</div>
+        </div>
+    </div>
+
+    <div class="financial-section">
+        <h2 class="section-title">Resumo Financeiro</h2>
+        <div class="financial-grid">
+            <div class="financial-card">
+                <div class="financial-header">
+                    <div class="financial-icon" style="background-color: #f3e5f5; color: #7b1fa2;">💰</div>
+                    <span class="financial-title">Valor Total em Estoque</span>
+                </div>
+                <div class="financial-value">R$ 921,00</div>
+            </div>
+
+            <div class="financial-card">
+                <div class="financial-header">
+                    <div class="financial-icon" style="background-color: #e3f2fd; color: #1976d2;">📈</div>
+                    <span class="financial-title">Ticket Médio</span>
+                </div>
+                <div class="financial-value">R$ 168,00</div>
+            </div>
+
+            <div class="financial-card">
+                <div class="financial-header">
+                    <div class="financial-icon" style="background-color: #f8d7da; color: #d63384;">🛒</div>
+                    <span class="financial-title">Valor Total em Cestas</span>
+                </div>
+                <div class="financial-value">R$ 840,00</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tables-grid">
+        <div class="table-card">
+            <div class="table-header">
+                <h3 class="table-title">Últimas Cestas Criadas</h3>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Preço</th>
+                        <th>Data</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Caixa de Lembranças</td>
+                        <td>R$ 70,00</td>
+                        <td>10/02/2025</td>
+                    </tr>
+                    <tr>
+                        <td>Café da Manhã Premium</td>
+                        <td>R$ 200,00</td>
+                        <td>10/02/2025</td>
+                    </tr>
+                    <tr>
+                        <td>Café da Manhã Simples</td>
+                        <td>R$ 120,00</td>
+                        <td>10/02/2025</td>
+                    </tr>
+                    <tr>
+                        <td>Gourmet Premium</td>
+                        <td>R$ 280,00</td>
+                        <td>10/02/2025</td>
+                    </tr>
+                    <tr>
+                        <td>Gourmet Simples</td>
+                        <td>R$ 170,00</td>
+                        <td>10/02/2025</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="table-card">
+            <div class="table-header">
+                <h3 class="table-title">Produtos com Estoque Baixo</h3>
+                <span class="badge">5</span>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Produto</th>
+                        <th>Categoria</th>
+                        <th>Estoque</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Waffle Doce</td>
+                        <td>Pães</td>
+                        <td><span class="stock-badge">0 un</span></td>
+                    </tr>
+                    <tr>
+                        <td>Baguete</td>
+                        <td>Pães</td>
+                        <td><span class="stock-badge">0 un</span></td>
+                    </tr>
+                    <tr>
+                        <td>Suco de uva</td>
+                        <td>Bebidas</td>
+                        <td><span class="stock-badge">0 un</span></td>
+                    </tr>
+                    <tr>
+                        <td>Vinho tinto suave</td>
+                        <td>Bebidas</td>
+                        <td><span class="stock-badge">0 un</span></td>
+                    </tr>
+                    <tr>
+                        <td>Uva verde</td>
+                        <td>Frutas</td>
+                        <td><span class="stock-badge">0 un</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 {% endblock %}

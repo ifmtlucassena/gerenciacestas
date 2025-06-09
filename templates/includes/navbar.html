@@ -1,0 +1,158 @@
+<nav class="navbar">
+    <div class="navbar-left">
+        <div class="logo">
+            <div class="logo-icon">🧺</div>
+            Cestas & Tábuas
+        </div>
+        <div class="nav-menu">
+            <a href="{% url 'dashboard' %}" class="nav-item active">
+                <div class="nav-icon"></div>
+                Dashboard
+            </a>
+            <a href="#" class="nav-item">
+                <div class="nav-icon"></div>
+                Categorias
+            </a>
+            <a href="#" class="nav-item">
+                <div class="nav-icon"></div>
+                Produtos
+            </a>
+            <a href="#" class="nav-item">
+                <div class="nav-icon"></div>
+                Cestas
+            </a>
+            <a href="#" class="nav-item">
+                <div class="nav-icon"></div>
+                Pedidos
+            </a>
+            <a href="#" class="nav-item">
+                <div class="nav-icon"></div>
+                Clientes
+            </a>
+        </div>
+    </div>
+    <div class="navbar-right">
+        <span class="user-name">{{ nome_usuario }}</span>
+        <a href="{% url 'logout' %}" class="logout-btn">Sair</a>
+    </div>
+</nav>
+
+<style>
+    .navbar {
+        background-color: white;
+        padding: 12px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .navbar-left {
+        display: flex;
+        align-items: center;
+        gap: 40px;
+    }
+
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .logo-icon {
+        width: 24px;
+        height: 24px;
+        background-color: #f8d7da;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+    }
+
+    .nav-menu {
+        display: flex;
+        gap: 24px;
+    }
+
+    .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        border-radius: 6px;
+        text-decoration: none;
+        color: #6c757d;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .nav-item.active {
+        background-color: #f8d7da;
+        color: #d63384;
+    }
+
+    .nav-item:hover:not(.active) {
+        background-color: #f1f3f4;
+        color: #495057;
+    }
+
+    .nav-icon {
+        width: 16px;
+        height: 16px;
+        background-color: currentColor;
+        border-radius: 2px;
+    }
+
+    .navbar-right {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .user-name {
+        color: #495057;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .logout-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        background-color: transparent;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        color: #6c757d;
+        text-decoration: none;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+
+    .logout-btn:hover {
+        background-color: #f8f9fa;
+        border-color: #adb5bd;
+    }
+
+    @media (max-width: 768px) {
+        .navbar {
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .navbar-left {
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .nav-menu {
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+    }
+</style>
