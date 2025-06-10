@@ -103,7 +103,6 @@ def visualizarTelaLogin(request):
                 cursor.close()
                 conexao.close()
             
-                # ✅ CORREÇÃO: Sempre pegar da sessão, nunca direto do banco
                 nome_usuario = request.session.get('nome', 'Usuário')
                 return render(request, 'dashboard/index.html', {
                     'nome_usuario': nome_usuario
