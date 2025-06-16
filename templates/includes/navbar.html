@@ -5,11 +5,11 @@
             Cestas & Tábuas
         </div>
         <div class="nav-menu">
-            <a href="{% url 'dashboard' %}" class="nav-item active">
+            <a href="{% url 'dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                 <div class="nav-icon"></div>
                 Dashboard
             </a>
-            <a href="#" class="nav-item">
+            <a href="{% url 'categorias' %}" class="nav-item {% if 'categorias' in request.path %}active{% endif %}">
                 <div class="nav-icon"></div>
                 Categorias
             </a>

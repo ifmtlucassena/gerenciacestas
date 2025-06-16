@@ -35,5 +35,6 @@ urlpatterns = [
     path('', verificar_acesso),
     path('auth/', include('autenticacao.urls')),
     path('dashboard/', include('dashboard.urls')),
+    path('categorias/', include('categorias.urls')),
 ]
 

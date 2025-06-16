@@ -1,0 +1,277 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 32px;
+    }
+
+    .page-info h1 {
+        font-size: 24px;
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 4px;
+    }
+
+    .page-info p {
+        color: #6c757d;
+        font-size: 14px;
+    }
+
+    .btn-primary {
+        background-color: #FFAFCC;
+        color: #000;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-primary:hover {
+        background-color: #ff9bb8;
+        color: #000;
+    }
+
+    .categories-table {
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        overflow: hidden;
+    }
+
+    .table {
+        width: 100%;
+        margin: 0;
+    }
+
+    .table th {
+        padding: 16px 20px;
+        text-align: left;
+        font-size: 12px;
+        color: #6c757d;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid #e9ecef;
+        background-color: #f8f9fa;
+    }
+
+    .table td {
+        padding: 16px 20px;
+        font-size: 14px;
+        color: #212529;
+        border-bottom: 1px solid #f8f9fa;
+        vertical-align: middle;
+    }
+
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .color-indicator {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .color-circle {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 1px solid #dee2e6;
+    }
+
+    .color-code {
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        color: #6c757d;
+    }
+
+    .observacao-cell {
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .actions-cell {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-edit {
+        background-color: #FFAFCC;
+        color: #000;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .btn-edit:hover {
+        background-color: #ff9bb8;
+        color: #000;
+    }
+
+    .btn-delete {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .btn-delete:hover {
+        background-color: #c82333;
+        color: white;
+    }
+
+    .alert {
+        padding: 12px 16px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+    }
+
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6c757d;
+    }
+
+    @media (max-width: 768px) {
+        .page-header {
+            flex-direction: column;
+            gap: 16px;
+            align-items: stretch;
+        }
+
+        .table {
+            font-size: 13px;
+        }
+
+        .table th,
+        .table td {
+            padding: 12px 16px;
+        }
+
+        .actions-cell {
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .observacao-cell {
+            max-width: 150px;
+        }
+    }
+</style>
+
+<div class="container">
+    <div class="page-header">
+        <div class="page-info">
+            <h1>Categorias</h1>
+            <p>Gerencie as categorias de produtos do sistema</p>
+        </div>
+        <a href="{% url 'nova_categoria' %}" class="btn-primary">
+            + Nova Categoria
+        </a>
+    </div>
+
+    {% if erro %}
+    <div class="alert alert-danger">
+        {{ erro }}
+    </div>
+    {% endif %}
+
+    {% if sucesso %}
+    <div class="alert alert-success">
+        {{ sucesso }}
+    </div>
+    {% endif %}
+
+    <div class="categories-table">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Cor</th>
+                    <th>Observação</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if categorias %}
+                    {% for categoria in categorias %}
+                    <tr>
+                        <td>{{ categoria.nome }}</td>
+                        <td>
+                            <div class="color-indicator">
+                                <div class="color-circle" style="background-color: {{ categoria.cor }}"></div>
+                                <span class="color-code">{{ categoria.cor }}</span>
+                            </div>
+                        </td>
+                        <td class="observacao-cell" title="{{ categoria.observacao }}">
+                            {{ categoria.observacao|default:"—" }}
+                        </td>
+                        <td class="actions-cell">
+                            <a href="{% url 'editar_categoria' categoria.id %}" class="btn-edit">
+                                ✏️ Editar
+                            </a>
+                            <a href="{% url 'confirmar_exclusao' categoria.id %}" class="btn-delete">
+                                🗑️ Excluir
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="empty-state">
+                            Nenhuma categoria cadastrada
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
