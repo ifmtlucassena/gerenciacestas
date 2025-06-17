@@ -43,7 +43,7 @@ def listarCategorias(request):
 def novaCategoria(request):
     if 'id_usuario' not in request.session:
         return render(request, 'autenticacao/login.html', {
-            'erro': 'Você precisa fazer login para acessar o sistema'
+            'erro': 'Você precisa fazer login para acessar o sistema!'
         })
     
     if request.method == 'POST':
@@ -101,14 +101,14 @@ def novaCategoria(request):
 def editarCategoria(request, id_categoria):
     if 'id_usuario' not in request.session:
         return render(request, 'autenticacao/login.html', {
-            'erro': 'Você precisa fazer login para acessar o sistema'
+            'erro': 'Você precisa fazer login para acessar o sistema!'
         })
     
     # Verificar se a categoria pertence ao usuário
     if not verificarPropriedadeCategoria(id_categoria, request.session['id_usuario']):
         return render(request, 'categorias/index.html', {
             'nome_usuario': request.session.get('nome', 'Usuário'),
-            'erro': 'Categoria não encontrada ou você não tem permissão para editá-la',
+            'erro': 'Categoria não encontrada ou você não tem permissão para editá-la!',
             'categorias': obterCategorias(request.session['id_usuario'])
         })
     
@@ -121,7 +121,7 @@ def editarCategoria(request, id_categoria):
             categoria_atual = obterCategoriaPorId(id_categoria, request.session['id_usuario'])
             return render(request, 'categorias/form.html', {
                 'nome_usuario': request.session.get('nome', 'Usuário'),
-                'erro': 'Nome e cor são obrigatórios',
+                'erro': 'Nome e cor são obrigatórios!',
                 'titulo': 'Editar Categoria',
                 'acao': 'editar',
                 'categoria_id': id_categoria,
@@ -214,14 +214,14 @@ def confirmarExclusao(request, id_categoria):
 def excluirCategoria(request, id_categoria):
     if 'id_usuario' not in request.session:
         return render(request, 'autenticacao/login.html', {
-            'erro': 'Você precisa fazer login para acessar o sistema'
+            'erro': 'Você precisa fazer login para acessar o sistema!'
         })
     
     # Verificar se a categoria pertence ao usuário
     if not verificarPropriedadeCategoria(id_categoria, request.session['id_usuario']):
         return render(request, 'categorias/index.html', {
             'nome_usuario': request.session.get('nome', 'Usuário'),
-            'erro': 'Categoria não encontrada ou você não tem permissão para excluí-la',
+            'erro': 'Categoria não encontrada ou você não tem permissão para excluí-la!',
             'categorias': obterCategorias(request.session['id_usuario'])
         })
     
