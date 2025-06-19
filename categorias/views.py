@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from autenticacao.database import conectar_banco
 
 def listarCategorias(request):
@@ -26,12 +26,23 @@ def listarCategorias(request):
             })
         
         cursor.close()
-        conexao.close()
+        conexao.close() 
         
-        return render(request, 'categorias/index.html', {
+        # Recupera mensagens da sessão e limpa
+        sucesso = request.session.pop('sucesso', None)
+        erro = request.session.pop('erro', None)
+        
+        context = {
             'nome_usuario': request.session.get('nome', 'Usuário'),
             'categorias': categorias
-        })
+        }
+        
+        if sucesso:
+            context['sucesso'] = sucesso
+        if erro:
+            context['erro'] = erro
+            
+        return render(request, 'categorias/index.html', context)
         
     except Exception as e:
         return render(request, 'categorias/index.html', {
@@ -43,7 +54,7 @@ def listarCategorias(request):
 def novaCategoria(request):
     if 'id_usuario' not in request.session:
         return render(request, 'autenticacao/login.html', {
-            'erro': 'Você precisa fazer login para acessar o sistema!'
+            'erro': 'Você precisa fazer login para acessar o sistema'
         })
     
     if request.method == 'POST':
@@ -78,11 +89,9 @@ def novaCategoria(request):
             cursor.close()
             conexao.close()
             
-            return render(request, 'categorias/index.html', {
-                'nome_usuario': request.session.get('nome', 'Usuário'),
-                'sucesso': 'Categoria criada com sucesso!',
-                'categorias': obterCategorias(request.session['id_usuario'])
-            })
+            # Salva mensagem na sessão e redireciona
+            request.session['sucesso'] = 'Categoria criada com sucesso!'
+            return redirect('categorias')
             
         except Exception as e:
             return render(request, 'categorias/form.html', {
@@ -101,16 +110,13 @@ def novaCategoria(request):
 def editarCategoria(request, id_categoria):
     if 'id_usuario' not in request.session:
         return render(request, 'autenticacao/login.html', {
-            'erro': 'Você precisa fazer login para acessar o sistema!'
+            'erro': 'Você precisa fazer login para acessar o sistema'
         })
     
     # Verificar se a categoria pertence ao usuário
     if not verificarPropriedadeCategoria(id_categoria, request.session['id_usuario']):
-        return render(request, 'categorias/index.html', {
-            'nome_usuario': request.session.get('nome', 'Usuário'),
-            'erro': 'Categoria não encontrada ou você não tem permissão para editá-la!',
-            'categorias': obterCategorias(request.session['id_usuario'])
-        })
+        request.session['erro'] = 'Categoria não encontrada ou você não tem permissão para editá-la'
+        return redirect('categorias')
     
     if request.method == 'POST':
         nome = request.POST.get('nome')
@@ -121,7 +127,7 @@ def editarCategoria(request, id_categoria):
             categoria_atual = obterCategoriaPorId(id_categoria, request.session['id_usuario'])
             return render(request, 'categorias/form.html', {
                 'nome_usuario': request.session.get('nome', 'Usuário'),
-                'erro': 'Nome e cor são obrigatórios!',
+                'erro': 'Nome e cor são obrigatórios',
                 'titulo': 'Editar Categoria',
                 'acao': 'editar',
                 'categoria_id': id_categoria,
@@ -148,11 +154,9 @@ def editarCategoria(request, id_categoria):
             cursor.close()
             conexao.close()
             
-            return render(request, 'categorias/index.html', {
-                'nome_usuario': request.session.get('nome', 'Usuário'),
-                'sucesso': 'Categoria editada com sucesso!',
-                'categorias': obterCategorias(request.session['id_usuario'])
-            })
+            # Salva mensagem na sessão e redireciona
+            request.session['sucesso'] = 'Categoria editada com sucesso!'
+            return redirect('categorias')
             
         except Exception as e:
             categoria_atual = obterCategoriaPorId(id_categoria, request.session['id_usuario'])
@@ -175,11 +179,8 @@ def editarCategoria(request, id_categoria):
             'categoria': categoria
         })
     else:
-        return render(request, 'categorias/index.html', {
-            'nome_usuario': request.session.get('nome', 'Usuário'),
-            'erro': 'Categoria não encontrada',
-            'categorias': obterCategorias(request.session['id_usuario'])
-        })
+        request.session['erro'] = 'Categoria não encontrada'
+        return redirect('categorias')
 
 def confirmarExclusao(request, id_categoria):
     if 'id_usuario' not in request.session:
@@ -189,11 +190,8 @@ def confirmarExclusao(request, id_categoria):
     
     # Verificar se a categoria pertence ao usuário
     if not verificarPropriedadeCategoria(id_categoria, request.session['id_usuario']):
-        return render(request, 'categorias/index.html', {
-            'nome_usuario': request.session.get('nome', 'Usuário'),
-            'erro': 'Categoria não encontrada ou você não tem permissão para excluí-la',
-            'categorias': obterCategorias(request.session['id_usuario'])
-        })
+        request.session['erro'] = 'Categoria não encontrada ou você não tem permissão para excluí-la'
+        return redirect('categorias')
     
     categoria = obterCategoriaPorId(id_categoria, request.session['id_usuario'])
     if categoria:
@@ -205,25 +203,19 @@ def confirmarExclusao(request, id_categoria):
             }
         })
     else:
-        return render(request, 'categorias/index.html', {
-            'nome_usuario': request.session.get('nome', 'Usuário'),
-            'erro': 'Categoria não encontrada',
-            'categorias': obterCategorias(request.session['id_usuario'])
-        })
+        request.session['erro'] = 'Categoria não encontrada'
+        return redirect('categorias')
 
 def excluirCategoria(request, id_categoria):
     if 'id_usuario' not in request.session:
         return render(request, 'autenticacao/login.html', {
-            'erro': 'Você precisa fazer login para acessar o sistema!'
+            'erro': 'Você precisa fazer login para acessar o sistema'
         })
     
     # Verificar se a categoria pertence ao usuário
     if not verificarPropriedadeCategoria(id_categoria, request.session['id_usuario']):
-        return render(request, 'categorias/index.html', {
-            'nome_usuario': request.session.get('nome', 'Usuário'),
-            'erro': 'Categoria não encontrada ou você não tem permissão para excluí-la!',
-            'categorias': obterCategorias(request.session['id_usuario'])
-        })
+        request.session['erro'] = 'Categoria não encontrada ou você não tem permissão para excluí-la'
+        return redirect('categorias')
     
     try:
         conexao = conectar_banco()
@@ -241,18 +233,13 @@ def excluirCategoria(request, id_categoria):
         cursor.close()
         conexao.close()
         
-        return render(request, 'categorias/index.html', {
-            'nome_usuario': request.session.get('nome', 'Usuário'),
-            'sucesso': 'Categoria excluída com sucesso!',
-            'categorias': obterCategorias(request.session['id_usuario'])
-        })
+        # Salva mensagem na sessão e redireciona
+        request.session['sucesso'] = 'Categoria excluída com sucesso!'
+        return redirect('categorias')
         
     except Exception as e:
-        return render(request, 'categorias/index.html', {
-            'nome_usuario': request.session.get('nome', 'Usuário'),
-            'erro': f'Erro ao excluir categoria: {str(e)}',
-            'categorias': obterCategorias(request.session['id_usuario'])
-        })
+        request.session['erro'] = f'Erro ao excluir categoria: {str(e)}'
+        return redirect('categorias')
 
 def obterCategorias(id_usuario):
     try:
