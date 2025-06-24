@@ -1,0 +1,347 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 24px;
+    }
+
+    .page-header {
+        margin-bottom: 32px;
+    }
+
+    .page-header h1 {
+        font-size: 24px;
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 4px;
+    }
+
+    .page-header p {
+        color: #6c757d;
+        font-size: 14px;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        padding: 32px;
+    }
+
+    .form-row {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+
+    .form-group {
+        margin-bottom: 24px;
+    }
+
+    .form-group.half {
+        flex: 1;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #212529;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        font-size: 14px;
+        color: #495057;
+        background-color: #fff;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #FFAFCC;
+        box-shadow: 0 0 0 2px rgba(255, 175, 204, 0.2);
+    }
+
+    .form-select {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        font-size: 14px;
+        color: #495057;
+        background-color: #fff;
+    }
+
+    .form-select:focus {
+        outline: none;
+        border-color: #FFAFCC;
+        box-shadow: 0 0 0 2px rgba(255, 175, 204, 0.2);
+    }
+
+    .form-textarea {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        font-size: 14px;
+        color: #495057;
+        background-color: #fff;
+        resize: vertical;
+        min-height: 100px;
+        font-family: inherit;
+    }
+
+    .form-textarea:focus {
+        outline: none;
+        border-color: #FFAFCC;
+        box-shadow: 0 0 0 2px rgba(255, 175, 204, 0.2);
+    }
+
+    .image-preview-section {
+        display: flex;
+        gap: 20px;
+        align-items: flex-start;
+    }
+
+    .image-preview {
+        width: 120px;
+        height: 120px;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        background-color: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .image-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .image-placeholder {
+        font-size: 48px;
+        color: #6c757d;
+    }
+
+    .image-input-group {
+        flex: 1;
+    }
+
+    .form-help {
+        font-size: 12px;
+        color: #6c757d;
+        margin-top: 4px;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid #e9ecef;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: none;
+    }
+
+    .btn-primary {
+        background-color: #FFAFCC;
+        color: #000;
+    }
+
+    .btn-primary:hover {
+        background-color: #ff9bb8;
+        color: #000;
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background-color: #5a6268;
+        color: white;
+    }
+
+    .alert {
+        padding: 12px 16px;
+        border-radius: 6px;
+        margin-bottom: 24px;
+    }
+
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    @media (max-width: 768px) {
+        .form-row {
+            flex-direction: column;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .image-preview-section {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="container">
+    <div class="page-header">
+        <h1>{{ titulo }}</h1>
+        <p>Preencha os dados do produto</p>
+    </div>
+
+    {% if erro %}
+    <div class="alert alert-danger">
+        {{ erro }}
+    </div>
+    {% endif %}
+
+    <div class="form-card">
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label class="form-label">Nome do Produto</label>
+                <input type="text" 
+                       name="nome" 
+                       class="form-input" 
+                       placeholder="Digite o nome do produto"
+                       value="{% if produto %}{{ produto.nome }}{% endif %}"
+                       required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Categoria</label>
+                <select name="id_categoria" class="form-select" required>
+                    <option value="">Selecione uma categoria</option>
+                    {% for categoria in categorias %}
+                        <option value="{{ categoria.id }}" {% if produto and produto.id_categoria == categoria.id %}selected{% endif %}>
+                            {{ categoria.nome }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Imagem do Produto</label>
+                <div class="image-preview-section">
+                    <div class="image-preview">
+                        {% if produto and produto.url_imagem %}
+                            <img id="imagePreview" src="{{ produto.url_imagem }}" alt="Preview">
+                        {% else %}
+                            <div id="imagePlaceholder" class="image-placeholder">📦</div>
+                        {% endif %}
+                    </div>
+                    <div class="image-input-group">
+                        <input type="url" 
+                               name="url_imagem" 
+                               class="form-input" 
+                               placeholder="URL da imagem do produto"
+                               value="{% if produto %}{{ produto.url_imagem }}{% endif %}"
+                               onchange="updateImagePreview(this.value)">
+                        <div class="form-help">
+                            Cole a URL de uma imagem para o produto
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group half">
+                    <label class="form-label">Quantidade em Estoque</label>
+                    <input type="number" 
+                           name="qnt_estoque" 
+                           class="form-input" 
+                           placeholder="0"
+                           value="{% if produto %}{{ produto.qnt_estoque }}{% endif %}"
+                           min="0"
+                           required>
+                </div>
+
+                <div class="form-group half">
+                    <label class="form-label">Preço do Fornecedor</label>
+                    <input type="number" 
+                           name="preco_custo" 
+                           class="form-input" 
+                           placeholder="0,00"
+                           value="{% if produto %}{{ produto.preco_custo }}{% endif %}"
+                           step="0.01"
+                           min="0"
+                           required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Descrição</label>
+                <textarea name="descricao" 
+                          class="form-textarea" 
+                          placeholder="Adicione uma descrição sobre este produto (opcional)">{% if produto %}{{ produto.descricao }}{% endif %}</textarea>
+            </div>
+
+            <div class="form-actions">
+                <a href="{% url 'produtos' %}" class="btn btn-secondary">
+                    Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    {% if acao == 'editar' %}
+                        Salvar Alterações
+                    {% else %}
+                        Criar Produto
+                    {% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function updateImagePreview(url) {
+        const preview = document.getElementById('imagePreview');
+        const placeholder = document.getElementById('imagePlaceholder');
+        const container = document.querySelector('.image-preview');
+        
+        if (url && url.trim() !== '') {
+            if (!preview) {
+                const img = document.createElement('img');
+                img.id = 'imagePreview';
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
+                container.innerHTML = '';
+                container.appendChild(img);
+            }
+            document.getElementById('imagePreview').src = url;
+        } else {
+            container.innerHTML = '<div id="imagePlaceholder" class="image-placeholder">📦</div>';
+        }
+    }
+</script>
+{% endblock %}

@@ -13,7 +13,7 @@
                 <div class="nav-icon"></div>
                 Categorias
             </a>
-            <a href="#" class="nav-item">
+            <a href="{% url 'produtos' %}" class="nav-item {% if 'produtos' in request.path %}active{% endif %}">
                 <div class="nav-icon"></div>
                 Produtos
             </a>

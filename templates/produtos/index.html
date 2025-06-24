@@ -1,0 +1,396 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 24px;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 32px;
+    }
+
+    .page-info h1 {
+        font-size: 24px;
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 4px;
+    }
+
+    .page-info p {
+        color: #6c757d;
+        font-size: 14px;
+    }
+
+    .filters-section {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 24px;
+        align-items: center;
+    }
+
+    .search-input {
+        flex: 1;
+        max-width: 400px;
+        padding: 10px 16px;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #FFAFCC;
+        box-shadow: 0 0 0 2px rgba(255, 175, 204, 0.2);
+    }
+
+    .category-filter {
+        padding: 10px 16px;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        font-size: 14px;
+        background-color: white;
+        min-width: 200px;
+    }
+
+    .category-filter:focus {
+        outline: none;
+        border-color: #FFAFCC;
+        box-shadow: 0 0 0 2px rgba(255, 175, 204, 0.2);
+    }
+
+    .btn-primary {
+        background-color: #FFAFCC;
+        color: #000;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-primary:hover {
+        background-color: #ff9bb8;
+        color: #000;
+    }
+
+    .products-table {
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        overflow: hidden;
+    }
+
+    .table {
+        width: 100%;
+        margin: 0;
+    }
+
+    .table th {
+        padding: 16px 20px;
+        text-align: left;
+        font-size: 12px;
+        color: #6c757d;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid #e9ecef;
+        background-color: #f8f9fa;
+    }
+
+    .table td {
+        padding: 16px 20px;
+        font-size: 14px;
+        color: #212529;
+        border-bottom: 1px solid #f8f9fa;
+        vertical-align: middle;
+    }
+
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .product-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .product-image {
+        width: 40px;
+        height: 40px;
+        border-radius: 6px;
+        object-fit: cover;
+        border: 1px solid #e9ecef;
+    }
+
+    .product-image-placeholder {
+        width: 40px;
+        height: 40px;
+        border-radius: 6px;
+        background-color: #f8f9fa;
+        border: 1px solid #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        color: #6c757d;
+    }
+
+    .product-name {
+        font-weight: 500;
+        color: #212529;
+    }
+
+    .category-badge {
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+        color: white;
+    }
+
+    .stock-number {
+        font-weight: 600;
+        color: #212529;
+    }
+
+    .price-value {
+        font-weight: 600;
+        color: #28a745;
+    }
+
+    .total-value {
+        font-weight: 600;
+        color: #212529;
+    }
+
+    .total-subtitle {
+        font-size: 12px;
+        color: #6c757d;
+    }
+
+    .actions-cell {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-edit {
+        background-color: #FFAFCC;
+        color: #000;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .btn-edit:hover {
+        background-color: #ff9bb8;
+        color: #000;
+    }
+
+    .btn-delete {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .btn-delete:hover {
+        background-color: #c82333;
+        color: white;
+    }
+
+    .alert {
+        padding: 12px 16px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+    }
+
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6c757d;
+    }
+
+    @media (max-width: 768px) {
+        .page-header {
+            flex-direction: column;
+            gap: 16px;
+            align-items: stretch;
+        }
+
+        .filters-section {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .search-input {
+            max-width: none;
+        }
+
+        .table {
+            font-size: 13px;
+        }
+
+        .table th,
+        .table td {
+            padding: 12px 16px;
+        }
+
+        .actions-cell {
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .product-info {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+    }
+</style>
+
+<div class="container">
+    <div class="page-header">
+        <div class="page-info">
+            <h1>Produtos</h1>
+            <p>Gerencie os produtos disponíveis para montar cestas e tábuas</p>
+        </div>
+        <a href="{% url 'novo_produto' %}" class="btn-primary">
+            + Novo Produto
+        </a>
+    </div>
+
+    {% if erro %}
+    <div class="alert alert-danger">
+        {{ erro }}
+    </div>
+    {% endif %}
+
+    {% if sucesso %}
+    <div class="alert alert-success">
+        {{ sucesso }}
+    </div>
+    {% endif %}
+
+    <form method="GET" class="filters-section">
+        <input type="text" 
+               name="busca" 
+               class="search-input" 
+               placeholder="Buscar produtos..."
+               value="{{ busca_atual }}">
+        
+        <select name="categoria" class="category-filter">
+            <option value="">Todas Categorias</option>
+            {% for categoria in categorias %}
+                <option value="{{ categoria.id }}" {% if categoria_atual == categoria.id|stringformat:"s" %}selected{% endif %}>
+                    {{ categoria.nome }}
+                </option>
+            {% endfor %}
+        </select>
+        
+        <button type="submit" class="btn-primary">Filtrar</button>
+    </form>
+
+    <div class="products-table">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Produto</th>
+                    <th>Categoria</th>
+                    <th>Estoque</th>
+                    <th>Preço/Un</th>
+                    <th>Total Estoque</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if produtos %}
+                    {% for produto in produtos %}
+                    <tr>
+                        <td>
+                            <div class="product-info">
+                                {% if produto.url_imagem %}
+                                    <img src="{{ produto.url_imagem }}" alt="{{ produto.nome }}" class="product-image">
+                                {% else %}
+                                    <div class="product-image-placeholder">📦</div>
+                                {% endif %}
+                                <span class="product-name">{{ produto.nome }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="category-badge" style="background-color: {{ produto.categoria_cor }};">
+                                {{ produto.categoria_nome }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="stock-number">{{ produto.qnt_estoque }}</span>
+                        </td>
+                        <td>
+                            <span class="price-value">R$ {{ produto.preco_custo|floatformat:2 }}</span>
+                        </td>
+                        <td>
+                            <div>
+                                <span class="total-value">R$ {{ produto.total_estoque|floatformat:2 }}</span>
+                            </div>
+                        </td>
+                        <td class="actions-cell">
+                            <a href="{% url 'editar_produto' produto.id %}" class="btn-edit">
+                                ✏️ Editar
+                            </a>
+                            <a href="{% url 'confirmar_exclusao_produto' produto.id %}" class="btn-delete">
+                                🗑️ Excluir
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="empty-state">
+                            Nenhum produto encontrado
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
