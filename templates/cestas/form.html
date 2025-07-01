@@ -1,0 +1,862 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 24px;
+    }
+
+    .page-header {
+        margin-bottom: 32px;
+    }
+
+    .page-header h1 {
+        font-size: 24px;
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 4px;
+    }
+
+    .page-header p {
+        color: #6c757d;
+        font-size: 14px;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        padding: 32px;
+    }
+
+    .form-row {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+
+    .form-group {
+        margin-bottom: 24px;
+    }
+
+    .form-group.half {
+        flex: 1;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #212529;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        font-size: 14px;
+        color: #495057;
+        background-color: #fff;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #FFAFCC;
+        box-shadow: 0 0 0 2px rgba(255, 175, 204, 0.2);
+    }
+
+    .form-textarea {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        font-size: 14px;
+        color: #495057;
+        background-color: #fff;
+        resize: vertical;
+        min-height: 100px;
+        font-family: inherit;
+    }
+
+    .form-textarea:focus {
+        outline: none;
+        border-color: #FFAFCC;
+        box-shadow: 0 0 0 2px rgba(255, 175, 204, 0.2);
+    }
+
+    .image-section {
+        margin-bottom: 24px;
+    }
+
+    .image-options {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 16px;
+    }
+
+    .radio-option {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .radio-option input[type="radio"] {
+        cursor: pointer;
+    }
+
+    .image-input-section {
+        display: none;
+    }
+
+    .image-input-section.active {
+        display: block;
+    }
+
+    .image-preview {
+        width: 150px;
+        height: 150px;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        background-color: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        margin-top: 12px;
+    }
+
+    .image-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .image-placeholder {
+        font-size: 48px;
+        color: #6c757d;
+    }
+
+    .produtos-section {
+        margin-bottom: 24px;
+    }
+
+    .produtos-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .btn-add-produto {
+        background-color: #FFAFCC;
+        color: #000;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-add-produto:hover {
+        background-color: #ff9bb8;
+    }
+
+    .produtos-lista {
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        overflow: hidden;
+    }
+
+    .produto-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        border-bottom: 1px solid #f8f9fa;
+        background-color: white;
+    }
+
+    .produto-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .produto-item:last-child {
+        border-bottom: none;
+    }
+
+    .produto-image {
+        width: 40px;
+        height: 40px;
+        border-radius: 4px;
+        object-fit: cover;
+        margin-right: 12px;
+    }
+
+    .produto-image-placeholder {
+        width: 40px;
+        height: 40px;
+        border-radius: 4px;
+        background-color: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 12px;
+        font-size: 18px;
+        color: #6c757d;
+    }
+
+    .produto-info {
+        flex: 1;
+    }
+
+    .produto-nome {
+        font-weight: 500;
+        color: #212529;
+    }
+
+    .produto-preco {
+        font-size: 12px;
+        color: #6c757d;
+    }
+
+    .produto-categoria {
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 500;
+        color: white;
+        margin-right: 12px;
+    }
+
+    .quantidade-control {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-right: 12px;
+    }
+
+    .btn-quantidade {
+        width: 28px;
+        height: 28px;
+        border: 1px solid #ced4da;
+        background-color: white;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+    }
+
+    .btn-quantidade:hover {
+        background-color: #f8f9fa;
+    }
+
+    .quantidade-input {
+        width: 50px;
+        text-align: center;
+        padding: 4px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+    }
+
+    .produto-subtotal {
+        font-weight: 600;
+        color: #28a745;
+        margin-right: 12px;
+        min-width: 80px;
+        text-align: right;
+    }
+
+    .btn-remove-produto {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        cursor: pointer;
+    }
+
+    .btn-remove-produto:hover {
+        background-color: #c82333;
+    }
+
+    .total-section {
+        margin-top: 16px;
+        padding: 16px;
+        background-color: #f8f9fa;
+        border-radius: 6px;
+        text-align: right;
+    }
+
+    .total-label {
+        font-size: 16px;
+        color: #6c757d;
+        margin-right: 12px;
+    }
+
+    .total-value {
+        font-size: 24px;
+        font-weight: 600;
+        color: #28a745;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid #e9ecef;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: none;
+    }
+
+    .btn-primary {
+        background-color: #FFAFCC;
+        color: #000;
+    }
+
+    .btn-primary:hover {
+        background-color: #ff9bb8;
+        color: #000;
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background-color: #5a6268;
+        color: white;
+    }
+
+    .alert {
+        padding: 12px 16px;
+        border-radius: 6px;
+        margin-bottom: 24px;
+    }
+
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: 50px auto;
+        padding: 0;
+        border: 1px solid #888;
+        width: 90%;
+        max-width: 600px;
+        border-radius: 8px;
+        max-height: 80vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .modal-header {
+        padding: 20px;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #212529;
+    }
+
+    .close {
+        color: #aaa;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        line-height: 20px;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: black;
+    }
+
+    .modal-body {
+        padding: 20px;
+        overflow-y: auto;
+        flex: 1;
+    }
+
+    .search-produtos {
+        width: 100%;
+        padding: 10px 16px;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        font-size: 14px;
+        margin-bottom: 16px;
+    }
+
+    .produtos-grid {
+        display: grid;
+        gap: 12px;
+    }
+
+    .produto-card {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        background-color: white;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .produto-card:hover {
+        background-color: #f8f9fa;
+        border-color: #FFAFCC;
+    }
+
+    .produto-card-image {
+        width: 60px;
+        height: 60px;
+        border-radius: 6px;
+        object-fit: cover;
+        margin-right: 12px;
+    }
+
+    .produto-card-image-placeholder {
+        width: 60px;
+        height: 60px;
+        border-radius: 6px;
+        background-color: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 12px;
+        font-size: 24px;
+        color: #6c757d;
+    }
+
+    .produto-card-info {
+        flex: 1;
+    }
+
+    .produto-card-nome {
+        font-weight: 500;
+        color: #212529;
+        margin-bottom: 4px;
+    }
+
+    .produto-card-preco {
+        font-size: 14px;
+        color: #28a745;
+        font-weight: 600;
+    }
+
+    .produto-card-categoria {
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 500;
+        color: white;
+    }
+
+    .empty-produtos {
+        text-align: center;
+        padding: 40px;
+        color: #6c757d;
+    }
+
+    @media (max-width: 768px) {
+        .form-row {
+            flex-direction: column;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .produto-item {
+            flex-wrap: wrap;
+        }
+
+        .quantidade-control {
+            margin-top: 8px;
+        }
+    }
+</style>
+
+<div class="container">
+    <div class="page-header">
+        <h1>{{ titulo }}</h1>
+        <p>Preencha os dados da cesta</p>
+    </div>
+
+    {% if erro %}
+    <div class="alert alert-danger">
+        {{ erro }}
+    </div>
+    {% endif %}
+
+    <div class="form-card">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="form-row">
+                <div class="form-group half">
+                    <label class="form-label">Nome da Cesta</label>
+                    <input type="text" 
+                           name="nome" 
+                           class="form-input" 
+                           placeholder="Digite o nome da cesta"
+                           value="{% if cesta %}{{ cesta.nome }}{% endif %}"
+                           required>
+                </div>
+
+                <div class="form-group half">
+                    <label class="form-label">Preço de Venda</label>
+                    <input type="text" 
+                           name="preco_venda" 
+                           class="form-input" 
+                           placeholder="0,00"
+                           value="{% if cesta %}{{ cesta.preco_venda|floatformat:2 }}{% endif %}"
+                           required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Descrição</label>
+                <textarea name="descricao" 
+                          class="form-textarea" 
+                          placeholder="Adicione uma descrição sobre esta cesta">{% if cesta %}{{ cesta.descricao }}{% endif %}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Observações</label>
+                <textarea name="observacoes" 
+                          class="form-textarea" 
+                          placeholder="Observações internas sobre a cesta (opcional)">{% if cesta %}{{ cesta.observacoes }}{% endif %}</textarea>
+            </div>
+
+            <div class="image-section">
+                <label class="form-label">Imagem da Cesta</label>
+                <div class="image-options">
+                    <label class="radio-option">
+                        <input type="radio" name="tipo_imagem" value="url" checked onchange="alternarTipoImagem()">
+                        URL da Internet
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="tipo_imagem" value="upload" onchange="alternarTipoImagem()">
+                        Upload de Arquivo
+                    </label>
+                </div>
+                
+                <div id="urlSection" class="image-input-section active">
+                    <input type="url" 
+                           name="url_imagem" 
+                           class="form-input" 
+                           placeholder="Cole a URL da imagem"
+                           value="{% if cesta %}{{ cesta.url_imagem }}{% endif %}"
+                           onchange="atualizarPreviewURL()">
+                </div>
+                
+                <div id="uploadSection" class="image-input-section">
+                    <input type="file" 
+                           name="imagem_upload" 
+                           class="form-input" 
+                           accept="image/*"
+                           onchange="atualizarPreviewUpload(this)">
+                </div>
+                
+                <div class="image-preview">
+                    {% if cesta and cesta.url_imagem %}
+                        <img id="imagePreview" src="{{ cesta.url_imagem }}" alt="Preview">
+                    {% else %}
+                        <div id="imagePlaceholder" class="image-placeholder">🧺</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="produtos-section">
+                <div class="produtos-header">
+                    <label class="form-label">Produtos da Cesta</label>
+                    <button type="button" class="btn-add-produto" onclick="abrirModalProdutos()">
+                        + Adicionar Produtos
+                    </button>
+                </div>
+                
+                <div class="produtos-lista" id="produtosLista">
+                    {% if cesta and cesta.produtos %}
+                        {% for produto in cesta.produtos %}
+                        <div class="produto-item" data-id="{{ produto.id }}">
+                            {% if produto.url_imagem %}
+                                <img src="{{ produto.url_imagem }}" alt="{{ produto.nome }}" class="produto-image">
+                            {% else %}
+                                <div class="produto-image-placeholder">📦</div>
+                            {% endif %}
+                            <div class="produto-info">
+                                <div class="produto-nome">{{ produto.nome }}</div>
+                                <div class="produto-preco">R$ {{ produto.preco|floatformat:2 }}</div>
+                            </div>
+                            <span class="produto-categoria" style="background-color: {{ produto.categoria_cor }};">
+                                {{ produto.categoria_nome }}
+                            </span>
+                            <div class="quantidade-control">
+                                <button type="button" class="btn-quantidade" onclick="alterarQuantidade({{ produto.id }}, -1)">-</button>
+                                <input type="number" class="quantidade-input" value="{{ produto.quantidade }}" min="1" onchange="atualizarQuantidade({{ produto.id }}, this.value)">
+                                <button type="button" class="btn-quantidade" onclick="alterarQuantidade({{ produto.id }}, 1)">+</button>
+                            </div>
+                            <span class="produto-subtotal">R$ {{ produto.preco|floatformat:2 }}</span>
+                            <button type="button" class="btn-remove-produto" onclick="removerProduto({{ produto.id }})">Remover</button>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-produtos" id="emptyMessage">
+                            Nenhum produto adicionado ainda
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="total-section" style="display: none;" id="totalSection">
+                    <span class="total-label">Total:</span>
+                    <span class="total-value" id="totalValue">R$ 0,00</span>
+                </div>
+            </div>
+
+            <input type="hidden" name="produtos_selecionados" id="produtosSelecionados" value="{% if cesta %}{{ cesta.produtos|default:'[]' }}{% else %}[]{% endif %}">
+
+            <div class="form-actions">
+                <a href="{% url 'cestas' %}" class="btn btn-secondary">
+                    Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    {% if acao == 'editar' %}
+                        Salvar Alterações
+                    {% else %}
+                        Criar Cesta
+                    {% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="modalProdutos" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">Selecionar Produtos</h2>
+            <span class="close" onclick="fecharModalProdutos()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <input type="text" 
+                   class="search-produtos" 
+                   placeholder="Buscar produtos..."
+                   onkeyup="buscarProdutos(this.value)">
+            <div class="produtos-grid" id="produtosGrid">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let produtosSelecionados = {% if cesta and cesta.produtos %}{{ cesta.produtos|safe }}{% else %}[]{% endif %};
+
+function alternarTipoImagem() {
+    const tipoSelecionado = document.querySelector('input[name="tipo_imagem"]:checked').value;
+    document.getElementById('urlSection').classList.toggle('active', tipoSelecionado === 'url');
+    document.getElementById('uploadSection').classList.toggle('active', tipoSelecionado === 'upload');
+}
+
+function atualizarPreviewURL() {
+    const url = document.querySelector('input[name="url_imagem"]').value;
+    const preview = document.querySelector('.image-preview');
+    
+    if (url && url.trim() !== '') {
+        preview.innerHTML = `<img id="imagePreview" src="${url}" alt="Preview">`;
+    } else {
+        preview.innerHTML = '<div id="imagePlaceholder" class="image-placeholder">🧺</div>';
+    }
+}
+
+function atualizarPreviewUpload(input) {
+    const preview = document.querySelector('.image-preview');
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.innerHTML = `<img id="imagePreview" src="${e.target.result}" alt="Preview">`;
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function abrirModalProdutos() {
+    document.getElementById('modalProdutos').style.display = 'block';
+    buscarProdutos('');
+}
+
+function fecharModalProdutos() {
+    document.getElementById('modalProdutos').style.display = 'none';
+}
+
+function buscarProdutos(termo) {
+    fetch(`/cestas/buscar-produtos/?busca=${termo}`)
+        .then(response => response.json())
+        .then(data => {
+            const grid = document.getElementById('produtosGrid');
+            grid.innerHTML = '';
+            
+            if (data.produtos && data.produtos.length > 0) {
+                data.produtos.forEach(produto => {
+                    const jaAdicionado = produtosSelecionados.some(p => p.id === produto.id);
+                    if (!jaAdicionado) {
+                        const card = document.createElement('div');
+                        card.className = 'produto-card';
+                        card.onclick = () => adicionarProduto(produto);
+                        
+                        card.innerHTML = `
+                            ${produto.url_imagem ? 
+                                `<img src="${produto.url_imagem}" alt="${produto.nome}" class="produto-card-image">` : 
+                                '<div class="produto-card-image-placeholder">📦</div>'}
+                            <div class="produto-card-info">
+                                <div class="produto-card-nome">${produto.nome}</div>
+                                <div class="produto-card-preco">R$ ${produto.preco.toFixed(2)}</div>
+                            </div>
+                            <span class="produto-card-categoria" style="background-color: ${produto.categoria_cor};">
+                                ${produto.categoria_nome}
+                            </span>
+                        `;
+                        
+                        grid.appendChild(card);
+                    }
+                });
+            } else {
+                grid.innerHTML = '<div class="empty-produtos">Nenhum produto encontrado</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao buscar produtos:', error);
+        });
+}
+
+function adicionarProduto(produto) {
+    produto.quantidade = 1;
+    produtosSelecionados.push(produto);
+    atualizarListaProdutos();
+    fecharModalProdutos();
+}
+
+function removerProduto(id) {
+    produtosSelecionados = produtosSelecionados.filter(p => p.id !== id);
+    atualizarListaProdutos();
+}
+
+function alterarQuantidade(id, delta) {
+    const produto = produtosSelecionados.find(p => p.id === id);
+    if (produto) {
+        produto.quantidade = Math.max(1, (produto.quantidade || 1) + delta);
+        atualizarListaProdutos();
+    }
+}
+
+function atualizarQuantidade(id, novaQuantidade) {
+    const produto = produtosSelecionados.find(p => p.id === id);
+    if (produto) {
+        produto.quantidade = Math.max(1, parseInt(novaQuantidade) || 1);
+        atualizarListaProdutos();
+    }
+}
+
+function atualizarListaProdutos() {
+    const lista = document.getElementById('produtosLista');
+    const emptyMessage = document.getElementById('emptyMessage');
+    
+    if (produtosSelecionados.length === 0) {
+        lista.innerHTML = '<div class="empty-produtos" id="emptyMessage">Nenhum produto adicionado ainda</div>';
+        document.getElementById('totalSection').style.display = 'none';
+    } else {
+        lista.innerHTML = '';
+        let total = 0;
+        
+        produtosSelecionados.forEach(produto => {
+            const subtotal = produto.preco * (produto.quantidade || 1);
+            total += subtotal;
+            
+            const item = document.createElement('div');
+            item.className = 'produto-item';
+            item.setAttribute('data-id', produto.id);
+            
+            item.innerHTML = `
+                ${produto.url_imagem ? 
+                    `<img src="${produto.url_imagem}" alt="${produto.nome}" class="produto-image">` : 
+                    '<div class="produto-image-placeholder">📦</div>'}
+                <div class="produto-info">
+                    <div class="produto-nome">${produto.nome}</div>
+                    <div class="produto-preco">R$ ${produto.preco.toFixed(2)}</div>
+                </div>
+                <span class="produto-categoria" style="background-color: ${produto.categoria_cor};">
+                    ${produto.categoria_nome}
+                </span>
+                <div class="quantidade-control">
+                    <button type="button" class="btn-quantidade" onclick="alterarQuantidade(${produto.id}, -1)">-</button>
+                    <input type="number" class="quantidade-input" value="${produto.quantidade || 1}" min="1" onchange="atualizarQuantidade(${produto.id}, this.value)">
+                    <button type="button" class="btn-quantidade" onclick="alterarQuantidade(${produto.id}, 1)">+</button>
+                </div>
+                <span class="produto-subtotal">R$ ${subtotal.toFixed(2)}</span>
+                <button type="button" class="btn-remove-produto" onclick="removerProduto(${produto.id})">Remover</button>
+            `;
+            
+            lista.appendChild(item);
+        });
+        
+        document.getElementById('totalSection').style.display = 'block';
+        document.getElementById('totalValue').textContent = `R$ ${total.toFixed(2)}`;
+    }
+    
+    document.getElementById('produtosSelecionados').value = JSON.stringify(produtosSelecionados);
+}
+
+window.onclick = function(event) {
+    const modal = document.getElementById('modalProdutos');
+    if (event.target == modal) {
+        modal.style.display = 'none';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    atualizarListaProdutos();
+});
+</script>
+{% endblock %}

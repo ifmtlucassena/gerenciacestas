@@ -1,57 +1,65 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.http import JsonResponse
 from autenticacao.database import conectar_banco
+import json
+import os
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
+from datetime import date
 
-# Create your views here.
-def listarProdutos(request):
+def listarCestas(request):
     if 'id_usuario' not in request.session:
         return render(request, 'autenticacao/login.html', {
             'erro': 'Você precisa fazer login para acessar o sistema'
         })
     
     busca = request.GET.get('busca', '')
-    categoria_filtro = request.GET.get('categoria', '')
     
     try:
         conexao = conectar_banco()
         cursor = conexao.cursor()
         
         query = """
-            SELECT 
-            FROM Cestas Ces, Produtos
-            WHERE Prod.Id_categoria = Cat.id_categoria 
-            AND Cat.id_usuario = %(id_usuario)s
+            SELECT DISTINCT c.Id_cesta, c.Nome, c.Preco_venda, c.URL_imagem, 
+                   c.Descricao, c.Observacoes,
+                   COUNT(DISTINCT cp.Id_produto) as total_produtos,
+                   STRING_AGG(DISTINCT cat.nome || ':' || cat.cor, ',') as categorias
+            FROM Cesta c
+            LEFT JOIN Cesta_Produto cp ON c.Id_cesta = cp.Id_cesta
+            LEFT JOIN Produto p ON cp.Id_produto = p.Id_produto
+            LEFT JOIN Categoria cat ON p.Id_categoria = cat.id_categoria
+            WHERE 1=1
         """
-        parametros = {'id_usuario': request.session['id_usuario']}
+        parametros = {}
         
         if busca:
-            query += " AND LOWER(Prod.Nome) LIKE %(busca)s"
+            query += " AND LOWER(c.Nome) LIKE %(busca)s"
             parametros['busca'] = f"%{busca.lower()}%"
-        
-        if categoria_filtro:
-            query += " AND Prod.Id_categoria = %(categoria_filtro)s"
-            parametros['categoria_filtro'] = categoria_filtro
             
-        query += " ORDER BY Prod.Nome"
+        query += " GROUP BY c.Id_cesta, c.Nome, c.Preco_venda, c.URL_imagem, c.Descricao, c.Observacoes"
+        query += " ORDER BY c.Nome"
         
         cursor.execute(query, parametros)
         
-        produtos = []
+        cestas = []
         for linha in cursor.fetchall():
-            total_estoque = linha[3] * linha[4] if linha[3] and linha[4] else 0
-            produtos.append({
+            categorias_info = []
+            if linha[7]:
+                for cat_info in linha[7].split(','):
+                    if ':' in cat_info:
+                        nome, cor = cat_info.split(':', 1)
+                        categorias_info.append({'nome': nome, 'cor': cor})
+            
+            cestas.append({
                 'id': linha[0],
                 'nome': linha[1],
-                'descricao': linha[2] if linha[2] else '',
-                'preco_custo': linha[3] if linha[3] else 0,
-                'qnt_estoque': linha[4] if linha[4] else 0,
-                'url_imagem': linha[5] if linha[5] else '',
-                'id_categoria': linha[6],
-                'categoria_nome': linha[7],
-                'categoria_cor': linha[8],
-                'total_estoque': total_estoque
+                'preco_venda': linha[2] if linha[2] else 0,
+                'url_imagem': linha[3] if linha[3] else '',
+                'descricao': linha[4] if linha[4] else '',
+                'observacoes': linha[5] if linha[5] else '',
+                'total_produtos': linha[6] if linha[6] else 0,
+                'categorias': categorias_info
             })
-        
-        categorias = obterCategoriasDoUsuario(request.session['id_usuario'])
         
         cursor.close()
         conexao.close()
@@ -61,10 +69,8 @@ def listarProdutos(request):
         
         context = {
             'nome_usuario': request.session.get('nome', 'Usuário'),
-            'produtos': produtos,
-            'categorias': categorias,
-            'busca_atual': busca,
-            'categoria_atual': categoria_filtro
+            'cestas': cestas,
+            'busca_atual': busca
         }
         
         if sucesso:
@@ -72,12 +78,443 @@ def listarProdutos(request):
         if erro:
             context['erro'] = erro
             
-        return render(request, 'produtos/index.html', context)
+        return render(request, 'cestas/index.html', context)
         
     except Exception as e:
-        return render(request, 'produtos/index.html', {
+        return render(request, 'cestas/index.html', {
             'nome_usuario': request.session.get('nome', 'Usuário'),
-            'erro': f'Erro ao carregar produtos: {str(e)}',
-            'produtos': [],
-            'categorias': []
+            'erro': f'Erro ao carregar cestas: {str(e)}',
+            'cestas': []
         })
+
+def novaCesta(request):
+    if 'id_usuario' not in request.session:
+        return render(request, 'autenticacao/login.html', {
+            'erro': 'Você precisa fazer login para acessar o sistema'
+        })
+    
+    if request.method == 'POST':
+        nome = request.POST.get('nome')
+        preco_venda = request.POST.get('preco_venda')
+        descricao = request.POST.get('descricao', '')
+        observacoes = request.POST.get('observacoes', '')
+        produtos_json = request.POST.get('produtos_selecionados', '[]')
+        
+        try:
+            produtos_selecionados = json.loads(produtos_json)
+        except:
+            produtos_selecionados = []
+        
+        if not nome or not preco_venda:
+            return render(request, 'cestas/form.html', {
+                'nome_usuario': request.session.get('nome', 'Usuário'),
+                'erro': 'Nome e preço são obrigatórios',
+                'titulo': 'Nova Cesta',
+                'acao': 'criar'
+            })
+        
+        try:
+            preco_venda = float(preco_venda.replace(',', '.'))
+        except ValueError:
+            return render(request, 'cestas/form.html', {
+                'nome_usuario': request.session.get('nome', 'Usuário'),
+                'erro': 'Preço deve ser um número válido',
+                'titulo': 'Nova Cesta',
+                'acao': 'criar'
+            })
+        
+        url_imagem = ''
+        if 'imagem_upload' in request.FILES and request.FILES['imagem_upload']:
+            imagem = request.FILES['imagem_upload']
+            fs = FileSystemStorage(location=os.path.join(settings.BASE_DIR, 'static', 'img'))
+            filename = fs.save(imagem.name, imagem)
+            url_imagem = f'/static/img/{filename}'
+        else:
+            url_imagem = request.POST.get('url_imagem', '')
+        
+        try:
+            conexao = conectar_banco()
+            cursor = conexao.cursor()
+            
+            cursor.execute(
+                """INSERT INTO Cesta (Nome, Preco_venda, URL_imagem, Descricao, Observacoes, Dt_criacao) 
+                   VALUES (%(nome)s, %(preco_venda)s, %(url_imagem)s, %(descricao)s, %(observacoes)s, %(dt_criacao)s)
+                   RETURNING Id_cesta""",
+                {
+                    'nome': nome,
+                    'preco_venda': preco_venda,
+                    'url_imagem': url_imagem,
+                    'descricao': descricao,
+                    'observacoes': observacoes,
+                    'dt_criacao': date.today()
+                }
+            )
+            
+            id_cesta = cursor.fetchone()[0]
+            
+            for produto in produtos_selecionados:
+                cursor.execute(
+                    """INSERT INTO Cesta_Produto (Id_cesta, Id_produto, Quantidade)
+                       VALUES (%(id_cesta)s, %(id_produto)s, %(quantidade)s)""",
+                    {
+                        'id_cesta': id_cesta,
+                        'id_produto': produto['id'],
+                        'quantidade': produto['quantidade']
+                    }
+                )
+            
+            conexao.commit()
+            cursor.close()
+            conexao.close()
+            
+            request.session['sucesso'] = 'Cesta criada com sucesso!'
+            return redirect('cestas')
+            
+        except Exception as e:
+            return render(request, 'cestas/form.html', {
+                'nome_usuario': request.session.get('nome', 'Usuário'),
+                'erro': f'Erro ao criar cesta: {str(e)}',
+                'titulo': 'Nova Cesta',
+                'acao': 'criar'
+            })
+    
+    return render(request, 'cestas/form.html', {
+        'nome_usuario': request.session.get('nome', 'Usuário'),
+        'titulo': 'Nova Cesta',
+        'acao': 'criar'
+    })
+
+def editarCesta(request, id_cesta):
+    if 'id_usuario' not in request.session:
+        return render(request, 'autenticacao/login.html', {
+            'erro': 'Você precisa fazer login para acessar o sistema'
+        })
+    
+    if request.method == 'POST':
+        nome = request.POST.get('nome')
+        preco_venda = request.POST.get('preco_venda')
+        descricao = request.POST.get('descricao', '')
+        observacoes = request.POST.get('observacoes', '')
+        produtos_json = request.POST.get('produtos_selecionados', '[]')
+        
+        try:
+            produtos_selecionados = json.loads(produtos_json)
+        except:
+            produtos_selecionados = []
+        
+        if not nome or not preco_venda:
+            cesta_atual = obterCestaPorId(id_cesta)
+            return render(request, 'cestas/form.html', {
+                'nome_usuario': request.session.get('nome', 'Usuário'),
+                'erro': 'Nome e preço são obrigatórios',
+                'titulo': 'Editar Cesta',
+                'acao': 'editar',
+                'cesta_id': id_cesta,
+                'cesta': cesta_atual
+            })
+        
+        try:
+            preco_venda = float(preco_venda.replace(',', '.'))
+        except ValueError:
+            cesta_atual = obterCestaPorId(id_cesta)
+            return render(request, 'cestas/form.html', {
+                'nome_usuario': request.session.get('nome', 'Usuário'),
+                'erro': 'Preço deve ser um número válido',
+                'titulo': 'Editar Cesta',
+                'acao': 'editar',
+                'cesta_id': id_cesta,
+                'cesta': cesta_atual
+            })
+        
+        url_imagem = ''
+        if 'imagem_upload' in request.FILES and request.FILES['imagem_upload']:
+            imagem = request.FILES['imagem_upload']
+            fs = FileSystemStorage(location=os.path.join(settings.BASE_DIR, 'static', 'img'))
+            filename = fs.save(imagem.name, imagem)
+            url_imagem = f'/static/img/{filename}'
+        else:
+            url_imagem = request.POST.get('url_imagem', '')
+        
+        try:
+            conexao = conectar_banco()
+            cursor = conexao.cursor()
+            
+            cursor.execute(
+                "SELECT Preco_venda FROM Cesta WHERE Id_cesta = %(id_cesta)s",
+                {'id_cesta': id_cesta}
+            )
+            preco_anterior = cursor.fetchone()[0]
+            
+            cursor.execute(
+                """UPDATE Cesta SET Nome = %(nome)s, Preco_venda = %(preco_venda)s,
+                   URL_imagem = %(url_imagem)s, Descricao = %(descricao)s,
+                   Observacoes = %(observacoes)s, DT_Atualizacao_preco = %(dt_atualizacao)s,
+                   Preco_venda_anterior = %(preco_anterior)s
+                   WHERE Id_cesta = %(id_cesta)s""",
+                {
+                    'nome': nome,
+                    'preco_venda': preco_venda,
+                    'url_imagem': url_imagem,
+                    'descricao': descricao,
+                    'observacoes': observacoes,
+                    'dt_atualizacao': date.today() if preco_anterior != preco_venda else None,
+                    'preco_anterior': preco_anterior if preco_anterior != preco_venda else None,
+                    'id_cesta': id_cesta
+                }
+            )
+            
+            cursor.execute(
+                "DELETE FROM Cesta_Produto WHERE Id_cesta = %(id_cesta)s",
+                {'id_cesta': id_cesta}
+            )
+            
+            for produto in produtos_selecionados:
+                cursor.execute(
+                    """INSERT INTO Cesta_Produto (Id_cesta, Id_produto, Quantidade)
+                       VALUES (%(id_cesta)s, %(id_produto)s, %(quantidade)s)""",
+                    {
+                        'id_cesta': id_cesta,
+                        'id_produto': produto['id'],
+                        'quantidade': produto['quantidade']
+                    }
+                )
+            
+            conexao.commit()
+            cursor.close()
+            conexao.close()
+            
+            request.session['sucesso'] = 'Cesta atualizada com sucesso!'
+            return redirect('cestas')
+            
+        except Exception as e:
+            cesta_atual = obterCestaPorId(id_cesta)
+            return render(request, 'cestas/form.html', {
+                'nome_usuario': request.session.get('nome', 'Usuário'),
+                'erro': f'Erro ao atualizar cesta: {str(e)}',
+                'titulo': 'Editar Cesta',
+                'acao': 'editar',
+                'cesta_id': id_cesta,
+                'cesta': cesta_atual
+            })
+    
+    cesta = obterCestaPorId(id_cesta)
+    if cesta:
+        return render(request, 'cestas/form.html', {
+            'nome_usuario': request.session.get('nome', 'Usuário'),
+            'titulo': 'Editar Cesta',
+            'acao': 'editar',
+            'cesta_id': id_cesta,
+            'cesta': cesta
+        })
+    else:
+        request.session['erro'] = 'Cesta não encontrada'
+        return redirect('cestas')
+
+def confirmarExclusao(request, id_cesta):
+    if 'id_usuario' not in request.session:
+        return render(request, 'autenticacao/login.html', {
+            'erro': 'Você precisa fazer login para acessar o sistema'
+        })
+    
+    cesta = obterCestaPorId(id_cesta)
+    if cesta:
+        return render(request, 'cestas/confirmar_exclusao.html', {
+            'nome_usuario': request.session.get('nome', 'Usuário'),
+            'cesta': {
+                'id': id_cesta,
+                'nome': cesta['nome']
+            }
+        })
+    else:
+        request.session['erro'] = 'Cesta não encontrada'
+        return redirect('cestas')
+
+def excluirCesta(request, id_cesta):
+    if 'id_usuario' not in request.session:
+        return render(request, 'autenticacao/login.html', {
+            'erro': 'Você precisa fazer login para acessar o sistema'
+        })
+    
+    try:
+        conexao = conectar_banco()
+        cursor = conexao.cursor()
+        
+        cursor.execute("DELETE FROM Cesta_Produto WHERE Id_cesta = %(id_cesta)s", {'id_cesta': id_cesta})
+        cursor.execute("DELETE FROM Cesta WHERE Id_cesta = %(id_cesta)s", {'id_cesta': id_cesta})
+        
+        conexao.commit()
+        cursor.close()
+        conexao.close()
+        
+        request.session['sucesso'] = 'Cesta excluída com sucesso!'
+        return redirect('cestas')
+        
+    except Exception as e:
+        request.session['erro'] = f'Erro ao excluir cesta: {str(e)}'
+        return redirect('cestas')
+
+def buscarProdutos(request):
+    if 'id_usuario' not in request.session:
+        return JsonResponse({'erro': 'Não autorizado'}, status=401)
+    
+    busca = request.GET.get('busca', '')
+    
+    try:
+        conexao = conectar_banco()
+        cursor = conexao.cursor()
+        
+        query = """
+            SELECT p.Id_produto, p.Nome, p.Preco_custo, p.URL_imagem,
+                   c.nome as categoria_nome, c.cor as categoria_cor
+            FROM Produto p
+            INNER JOIN Categoria c ON p.Id_categoria = c.id_categoria
+            WHERE c.id_usuario = %(id_usuario)s
+        """
+        parametros = {'id_usuario': request.session['id_usuario']}
+        
+        if busca:
+            query += " AND LOWER(p.Nome) LIKE %(busca)s"
+            parametros['busca'] = f"%{busca.lower()}%"
+        
+        query += " ORDER BY p.Nome"
+        
+        cursor.execute(query, parametros)
+        
+        produtos = []
+        for linha in cursor.fetchall():
+            produtos.append({
+                'id': linha[0],
+                'nome': linha[1],
+                'preco': float(linha[2]) if linha[2] else 0,
+                'url_imagem': linha[3] if linha[3] else '',
+                'categoria_nome': linha[4],
+                'categoria_cor': linha[5]
+            })
+        
+        cursor.close()
+        conexao.close()
+        
+        return JsonResponse({'produtos': produtos})
+        
+    except Exception as e:
+        return JsonResponse({'erro': str(e)}, status=500)
+
+def visualizarCesta(request, id_cesta):
+    if 'id_usuario' not in request.session:
+        return JsonResponse({'erro': 'Não autorizado'}, status=401)
+    
+    try:
+        conexao = conectar_banco()
+        cursor = conexao.cursor()
+        
+        cursor.execute(
+            """SELECT c.Nome, c.Preco_venda, c.URL_imagem, c.Descricao, c.Observacoes
+               FROM Cesta c
+               WHERE c.Id_cesta = %(id_cesta)s""",
+            {'id_cesta': id_cesta}
+        )
+        
+        cesta_info = cursor.fetchone()
+        if not cesta_info:
+            return JsonResponse({'erro': 'Cesta não encontrada'}, status=404)
+        
+        cursor.execute(
+            """SELECT p.Id_produto, p.Nome, p.Preco_custo, p.URL_imagem,
+                      cp.Quantidade, cat.nome, cat.cor
+               FROM Cesta_Produto cp
+               INNER JOIN Produto p ON cp.Id_produto = p.Id_produto
+               INNER JOIN Categoria cat ON p.Id_categoria = cat.id_categoria
+               WHERE cp.Id_cesta = %(id_cesta)s
+               ORDER BY cat.nome, p.Nome""",
+            {'id_cesta': id_cesta}
+        )
+        
+        produtos = []
+        categorias_count = {}
+        
+        for linha in cursor.fetchall():
+            produtos.append({
+                'id': linha[0],
+                'nome': linha[1],
+                'preco': float(linha[2]) if linha[2] else 0,
+                'url_imagem': linha[3] if linha[3] else '',
+                'quantidade': linha[4],
+                'categoria_nome': linha[5],
+                'categoria_cor': linha[6],
+                'subtotal': float(linha[2] * linha[4]) if linha[2] else 0
+            })
+            
+            cat_key = f"{linha[5]}:{linha[6]}"
+            if cat_key not in categorias_count:
+                categorias_count[cat_key] = {'nome': linha[5], 'cor': linha[6], 'count': 0}
+            categorias_count[cat_key]['count'] += 1
+        
+        cursor.close()
+        conexao.close()
+        
+        cesta = {
+            'nome': cesta_info[0],
+            'preco_venda': float(cesta_info[1]) if cesta_info[1] else 0,
+            'url_imagem': cesta_info[2] if cesta_info[2] else '',
+            'descricao': cesta_info[3] if cesta_info[3] else '',
+            'observacoes': cesta_info[4] if cesta_info[4] else '',
+            'produtos': produtos,
+            'categorias_resumo': list(categorias_count.values()),
+            'total_produtos': len(produtos),
+        }
+        
+        return render(request, 'cestas/detalhes_modal.html', {'cesta': cesta})
+        
+    except Exception as e:
+        return JsonResponse({'erro': str(e)}, status=500)
+
+def obterCestaPorId(id_cesta):
+    try:
+        conexao = conectar_banco()
+        cursor = conexao.cursor()
+        
+        cursor.execute(
+            """SELECT Nome, Preco_venda, URL_imagem, Descricao, Observacoes
+               FROM Cesta WHERE Id_cesta = %(id_cesta)s""",
+            {'id_cesta': id_cesta}
+        )
+        
+        cesta = cursor.fetchone()
+        if not cesta:
+            return None
+        
+        cursor.execute(
+            """SELECT p.Id_produto, p.Nome, p.Preco_custo, p.URL_imagem,
+                      cp.Quantidade, cat.nome, cat.cor
+               FROM Cesta_Produto cp
+               INNER JOIN Produto p ON cp.Id_produto = p.Id_produto
+               INNER JOIN Categoria cat ON p.Id_categoria = cat.id_categoria
+               WHERE cp.Id_cesta = %(id_cesta)s""",
+            {'id_cesta': id_cesta}
+        )
+        
+        produtos = []
+        for linha in cursor.fetchall():
+            produtos.append({
+                'id': linha[0],
+                'nome': linha[1],
+                'preco': float(linha[2]) if linha[2] else 0,
+                'url_imagem': linha[3] if linha[3] else '',
+                'quantidade': linha[4],
+                'categoria_nome': linha[5],
+                'categoria_cor': linha[6]
+            })
+        
+        cursor.close()
+        conexao.close()
+        
+        return {
+            'nome': cesta[0],
+            'preco_venda': float(cesta[1]) if cesta[1] else 0,
+            'url_imagem': cesta[2] if cesta[2] else '',
+            'descricao': cesta[3] if cesta[3] else '',
+            'observacoes': cesta[4] if cesta[4] else '',
+            'produtos': produtos
+        }
+    except:
+        return None

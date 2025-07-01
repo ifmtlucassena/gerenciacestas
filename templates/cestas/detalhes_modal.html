@@ -1,0 +1,262 @@
+<style>
+    .cesta-header {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+
+    .cesta-image-detail {
+        width: 120px;
+        height: 120px;
+        border-radius: 8px;
+        object-fit: cover;
+        border: 1px solid #e9ecef;
+    }
+
+    .cesta-image-placeholder-detail {
+        width: 120px;
+        height: 120px;
+        border-radius: 8px;
+        background-color: #f8f9fa;
+        border: 1px solid #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 48px;
+        color: #6c757d;
+    }
+
+    .cesta-info-detail {
+        flex: 1;
+    }
+
+    .cesta-nome-detail {
+        font-size: 24px;
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 8px;
+    }
+
+    .cesta-preco-detail {
+        font-size: 28px;
+        font-weight: 700;
+        color: #28a745;
+        margin-bottom: 12px;
+    }
+
+    .cesta-descricao-detail {
+        color: #6c757d;
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    .cesta-observacoes-detail {
+        background-color: #f8f9fa;
+        padding: 12px;
+        border-radius: 6px;
+        font-size: 13px;
+        color: #495057;
+        margin-bottom: 16px;
+    }
+
+    .categorias-resumo {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 24px;
+    }
+
+    .categoria-resumo-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 14px;
+        color: white;
+    }
+
+    .categoria-count {
+        background-color: rgba(255, 255, 255, 0.3);
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+    }
+
+    .produtos-detalhes {
+        margin-top: 24px;
+    }
+
+    .produtos-detalhes-header {
+        font-size: 18px;
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 16px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .produto-detail-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #f8f9fa;
+    }
+
+    .produto-detail-item:last-child {
+        border-bottom: none;
+    }
+
+    .produto-detail-image {
+        width: 50px;
+        height: 50px;
+        border-radius: 4px;
+        object-fit: cover;
+        margin-right: 12px;
+    }
+
+    .produto-detail-image-placeholder {
+        width: 50px;
+        height: 50px;
+        border-radius: 4px;
+        background-color: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 12px;
+        font-size: 20px;
+        color: #6c757d;
+    }
+
+    .produto-detail-info {
+        flex: 1;
+    }
+
+    .produto-detail-nome {
+        font-weight: 500;
+        color: #212529;
+        margin-bottom: 2px;
+    }
+
+    .produto-detail-preco {
+        font-size: 12px;
+        color: #6c757d;
+    }
+
+    .produto-detail-quantidade {
+        background-color: #f8f9fa;
+        padding: 4px 12px;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 500;
+        color: #495057;
+        margin-right: 12px;
+    }
+
+    .produto-detail-subtotal {
+        font-weight: 600;
+        color: #28a745;
+        font-size: 16px;
+    }
+
+    .resumo-valores {
+        margin-top: 24px;
+        padding: 20px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .resumo-linha {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    .resumo-linha:last-child {
+        margin-bottom: 0;
+        padding-top: 8px;
+        border-top: 2px solid #dee2e6;
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .resumo-label {
+        color: #6c757d;
+    }
+
+    .resumo-valor {
+        color: #212529;
+        font-weight: 500;
+    }
+
+    .resumo-total {
+        color: #28a745;
+        font-weight: 700;
+    }
+</style>
+
+<div class="cesta-header">
+    {% if cesta.url_imagem %}
+        <img src="{{ cesta.url_imagem }}" alt="{{ cesta.nome }}" class="cesta-image-detail">
+    {% else %}
+        <div class="cesta-image-placeholder-detail">🧺</div>
+    {% endif %}
+    
+    <div class="cesta-info-detail">
+        <h2 class="cesta-nome-detail">{{ cesta.nome }}</h2>
+        <div class="cesta-preco-detail">R$ {{ cesta.preco_venda|floatformat:2 }}</div>
+        
+        {% if cesta.descricao %}
+            <p class="cesta-descricao-detail">{{ cesta.descricao }}</p>
+        {% endif %}
+    </div>
+</div>
+
+{% if cesta.observacoes %}
+    <div class="cesta-observacoes-detail">
+        <strong>Observações:</strong> {{ cesta.observacoes }}
+    </div>
+{% endif %}
+
+<div class="categorias-resumo">
+    {% for categoria in cesta.categorias_resumo %}
+        <div class="categoria-resumo-item" style="background-color: {{ categoria.cor }};">
+            <span>{{ categoria.nome }}</span>
+            <span class="categoria-count">{{ categoria.count }} itens</span>
+        </div>
+    {% endfor %}
+</div>
+
+<div class="produtos-detalhes">
+    <h3 class="produtos-detalhes-header">Produtos da Cesta</h3>
+    
+    {% for produto in cesta.produtos %}
+        <div class="produto-detail-item">
+            {% if produto.url_imagem %}
+                <img src="{{ produto.url_imagem }}" alt="{{ produto.nome }}" class="produto-detail-image">
+            {% else %}
+                <div class="produto-detail-image-placeholder">📦</div>
+            {% endif %}
+            
+            <div class="produto-detail-info">
+                <div class="produto-detail-nome">{{ produto.nome }}</div>
+                <div class="produto-detail-preco">R$ {{ produto.preco|floatformat:2 }} por unidade</div>
+            </div>
+            
+            <span class="produto-detail-quantidade">{{ produto.quantidade }} UNI</span>
+            <span class="produto-detail-subtotal">R$ {{ produto.subtotal|floatformat:2 }}</span>
+        </div>
+    {% endfor %}
+</div>
+
+<div class="resumo-valores">
+    <div class="resumo-linha">
+        <span class="resumo-label">Total de Produtos:</span>
+        <span class="resumo-valor">{{ cesta.total_produtos }} itens</span>
+    </div>
+    <div class="resumo-linha">
+        <span class="resumo-label">Preço de Venda:</span>
+        <span class="resumo-total">R$ {{ cesta.preco_venda|floatformat:2 }}</span>
+    </div>
+</div>

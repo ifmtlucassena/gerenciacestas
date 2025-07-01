@@ -17,7 +17,7 @@
                 <div class="nav-icon"></div>
                 Produtos
             </a>
-            <a href="#" class="nav-item">
+            <a href="{% url 'cestas' %}" class="nav-item {% if 'cestas' in request.path %}active{% endif %}">
                 <div class="nav-icon"></div>
                 Cestas
             </a>
