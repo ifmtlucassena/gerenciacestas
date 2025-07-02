@@ -39,5 +39,5 @@ urlpatterns = [
     path('produtos/', include('produtos.urls')),
     path('cestas/', include('cestas.urls')),
     path('pedidos/', include('pedidos.urls')),
-
+    path('clientes/', include('clientes.urls')),
 ]

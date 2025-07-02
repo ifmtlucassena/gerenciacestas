@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .container { max-width: 500px; margin: 40px auto; padding: 24px; }
+    .confirmation-card { background: white; border-radius: 8px; padding: 32px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    .warning-icon { font-size: 48px; margin-bottom: 16px; color: #dc3545; }
+    .confirmation-title { font-size: 20px; font-weight: 600; margin-bottom: 8px; color: #212529; }
+    .confirmation-message { color: #6c757d; font-size: 14px; margin-bottom: 16px; }
+    .item-name { background-color: #f8f9fa; padding: 8px 16px; border-radius: 6px; font-weight: 600; color: #495057; margin: 24px 0; display: inline-block; border: 1px solid #dee2e6; }
+    .form-actions { display: flex; gap: 12px; justify-content: center; margin-top: 24px; }
+    .btn { padding: 10px 20px; border-radius: 6px; font-size: 14px; text-decoration: none; border: none; cursor: pointer; transition: background-color 0.2s; }
+    .btn-danger { background-color: #dc3545; color: white; }
+    .btn-danger:hover { background-color: #c82333; }
+    .btn-secondary { background-color: #6c757d; color: white; }
+    .btn-secondary:hover { background-color: #5a6268; }
+</style>
+
+<div class="container">
+    <div class="confirmation-card">
+        <div class="warning-icon">⚠️</div>
+        <h1 class="confirmation-title">Confirmar Exclusão</h1>
+        <p class="confirmation-message">
+            Tem certeza que deseja excluir permanentemente o cliente?
+        </p>
+        <div class="item-name">{{ cliente.nome }}</div>
+        <p class="confirmation-message">
+            <strong>Atenção:</strong> Todos os pedidos associados a este cliente também serão excluídos. Esta ação não poderá ser desfeita.
+        </p>
+        <div class="form-actions">
+            <a href="{% url 'clientes' %}" class="btn btn-secondary">Cancelar</a>
+            <a href="{% url 'excluir_cliente' cliente.id %}" class="btn btn-danger">Sim, Excluir</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

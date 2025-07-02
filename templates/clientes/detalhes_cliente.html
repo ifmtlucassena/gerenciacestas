@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .container { max-width: 900px; margin: 40px auto; padding: 24px; }
+    .header-card { background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 32px; display: flex; flex-direction: column; align-items: center; margin-bottom: 24px; }
+    .header-card h1 { font-size: 28px; font-weight: 600; color: #212529; margin: 0; }
+    .header-card p { font-size: 16px; color: #6c757d; margin-top: 8px; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; }
+    .stat-card { background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 24px; text-align: center; }
+    .stat-card h2 { font-size: 16px; color: #6c757d; font-weight: 500; margin-top: 0; margin-bottom: 8px; }
+    .stat-value { font-size: 32px; font-weight: 700; color: #FFAFCC; }
+    .list-card { background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 24px; }
+    .list-card h2 { font-size: 18px; font-weight: 600; color: #212529; margin-top: 0; margin-bottom: 16px; }
+    .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f1f3f5; }
+    .list-item:last-child { border-bottom: none; }
+    .list-item span { font-size: 14px; color: #212529; }
+    .list-item .count { font-weight: 600; color: #495057; }
+    .empty-list { color: #6c757d; font-size: 14px; text-align: center; padding: 20px; }
+    .back-link { display: inline-block; margin-bottom: 24px; color: #495057; text-decoration: none; font-size: 14px; }
+    .back-link:hover { text-decoration: underline; }
+</style>
+
+<div class="container">
+    <a href="{% url 'clientes' %}" class="back-link">← Voltar para a lista de clientes</a>
+
+    <div class="header-card">
+        <h1>{{ cliente.nome }}</h1>
+        <p>{{ cliente.email|default:'' }} • {{ cliente.telefone|default:'' }}</p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h2>Faturamento Total</h2>
+            <p class="stat-value">R$ {{ faturamento_total|floatformat:2 }}</p>
+        </div>
+        <div class="stat-card">
+            <h2>Total de Pedidos</h2>
+            <p class="stat-value">{{ total_pedidos }}</p>
+        </div>
+    </div>
+    <div class="list-card" style="grid-column: 1 / -1;">
+        <h2>Cestas Favoritas (Top 5)</h2>
+        {% if cestas_favoritas %}
+            {% for cesta, count in cestas_favoritas %}
+                <div class="list-item">
+                    <span>{{ cesta }}</span>
+                    <span class="count">{{ count }} pedido(s)</span>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="empty-list">Nenhum pedido de cesta encontrado para este cliente.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
