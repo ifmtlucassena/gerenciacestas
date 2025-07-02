@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .container { max-width: 800px; margin: 40px auto; padding: 24px; }
+    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; }
+    .page-header h1 { font-size: 24px; font-weight: 600; color: #212529; }
+    .form-card { background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    .form-body { padding: 32px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .form-group { margin-bottom: 24px; }
+    .form-group.full-width { grid-column: 1 / -1; }
+    .form-label { display: block; margin-bottom: 8px; font-weight: 500; color: #495057; }
+    .form-input, .form-select { width: 100%; padding: 12px 16px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px; transition: border-color 0.2s; }
+    .form-input:focus, .form-select:focus { outline: none; border-color: #FFAFCC; }
+    .cliente-section { display: flex; align-items: flex-end; gap: 12px; }
+    .btn { padding: 12px 20px; border-radius: 6px; font-weight: 500; text-decoration: none; border: none; cursor: pointer; transition: background-color 0.2s; }
+    .btn-primary { background-color: #FFAFCC; color: black; }
+    .btn-primary:hover { background-color: #F8C8DC; }
+    .btn-secondary { background-color: #6c757d; color: white; }
+    .btn-secondary:hover { background-color: #5a6268; }
+    .form-actions { display: flex; gap: 12px; justify-content: flex-end; padding: 24px 32px; background-color: #f8f9fa; border-top: 1px solid #e9ecef; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; }
+    .modal-overlay { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
+    .modal-box { background-color: white; border-radius: 8px; width: 500px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transform: scale(0.95); opacity: 0; transition: transform 0.3s, opacity 0.3s; }
+    .modal-header { padding: 20px 24px; border-bottom: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center; }
+    .modal-header h2 { font-size: 18px; font-weight: 600; }
+    .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: #6c757d; }
+    .modal-body { padding: 24px; }
+    .modal-footer { padding: 20px 24px; border-top: 1px solid #e9ecef; display: flex; justify-content: flex-end; }
+</style>
+
+<div class="container">
+    <div class="page-header">
+        <h1>{{ titulo }}</h1>
+    </div>
+    
+    <div class="form-card">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-body">
+                <div class="form-group full-width">
+                    <label class="form-label">Cliente</label>
+                    <div class="cliente-section">
+                        <select name="id_cliente" id="id_cliente" class="form-select" required>
+                            <option value="">Selecione um cliente existente</option>
+                            {% for cliente in clientes %}
+                                <option value="{{ cliente.id }}" {% if pedido.id_cliente == cliente.id %}selected{% endif %}>{{ cliente.nome }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="button" id="btnNovoCliente" class="btn btn-primary" style="white-space: nowrap;">+ Novo</button>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Cesta</label>
+                        <select name="id_cesta" class="form-select" required>
+                            <option value="">Selecione uma cesta</option>
+                            {% for cesta in cestas %}
+                                <option value="{{ cesta.id }}" {% if pedido.id_cesta == cesta.id %}selected{% endif %}>{{ cesta.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Quantidade</label>
+                        <input type="number" name="quantidade" class="form-input" value="{{ pedido.quantidade|default:1 }}" min="1" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Status do Pedido</label>
+                        <select name="status" class="form-select" required>
+                            <option value="A" {% if pedido.status == 'A' %}selected{% endif %}>Aguardando</option>
+                            <option value="P" {% if pedido.status == 'P' %}selected{% endif %}>Em Produção</option>
+                            <option value="E" {% if pedido.status == 'E' %}selected{% endif %}>Entregue</option>
+                            <option value="C" {% if pedido.status == 'C' %}selected{% endif %}>Cancelado</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Data da Venda</label>
+                        <input type="date" name="dt_venda" class="form-input" value="{{ dt_venda_formatada }}" required>
+                    </div>
+                </div>
+                
+                <div class="form-group" style="display: flex; align-items: center; padding-top: 10px;">
+                    <input type="checkbox" name="presente" id="presente" style="height: 20px; width: 20px; margin-right: 10px;" {% if pedido.presente == 'S' %}checked{% endif %}>
+                    <label for="presente">É para presente?</label>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="{% url 'pedidos' %}" class="btn btn-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary">Salvar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="modalNovoCliente" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h2>Novo Cliente</h2>
+            <button class="modal-close">&times;</button>
+        </div>
+        <form id="formNovoCliente">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Nome Completo</label>
+                    <input type="text" id="clienteNome" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" id="clienteEmail" class="form-input">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Telefone</label>
+                    <input type="text" id="clienteTelefone" class="form-input">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Salvar Cliente</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const modalOverlay = document.getElementById("modalNovoCliente");
+    const modalBox = modalOverlay.querySelector(".modal-box");
+    const openModalBtn = document.getElementById("btnNovoCliente");
+    const closeModalBtn = modalOverlay.querySelector(".modal-close");
+
+    const openModal = () => {
+        modalOverlay.style.display = "flex";
+        setTimeout(() => {
+            modalBox.style.transform = "scale(1)";
+            modalBox.style.opacity = "1";
+        }, 10);
+    };
+
+    const closeModal = () => {
+        modalBox.style.transform = "scale(0.95)";
+        modalBox.style.opacity = "0";
+        setTimeout(() => {
+            modalOverlay.style.display = "none";
+        }, 300);
+    };
+
+    openModalBtn.onclick = openModal;
+    closeModalBtn.onclick = closeModal;
+    modalOverlay.onclick = (event) => {
+        if (event.target === modalOverlay) {
+            closeModal();
+        }
+    };
+
+    document.getElementById('formNovoCliente').onsubmit = function(e) {
+        e.preventDefault();
+        const nome = document.getElementById('clienteNome').value;
+        const email = document.getElementById('clienteEmail').value;
+        const telefone = document.getElementById('clienteTelefone').value;
+
+        fetch("{% url 'novo_cliente_rapido' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ nome, email, telefone })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.sucesso) {
+                const selectCliente = document.getElementById('id_cliente');
+                const newOption = new Option(data.cliente.nome, data.cliente.id, true, true);
+                selectCliente.add(newOption);
+                closeModal();
+            } else {
+                alert('Erro ao criar cliente: ' + data.erro);
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        if (!document.querySelector('[name="dt_venda"]').value) {
+            const today = new Date().toISOString().split('T')[0];
+            document.querySelector('[name="dt_venda"]').value = today;
+        }
+    });
+</script>
+{% endblock %}

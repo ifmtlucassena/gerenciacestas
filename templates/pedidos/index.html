@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 24px;
+    }
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 32px;
+    }
+    .page-info h1 {
+        font-size: 24px;
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 4px;
+    }
+    .page-info p {
+        color: #6c757d;
+        font-size: 14px;
+    }
+    .search-section {
+        margin-bottom: 24px;
+    }
+    .search-input {
+        max-width: 400px;
+        padding: 10px 16px;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+    .btn-primary {
+        background-color: #FFAFCC;
+        color: #000;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .pedidos-table {
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        overflow: hidden;
+    }
+    .table {
+        width: 100%;
+        margin: 0;
+    }
+    .table th, .table td {
+        padding: 16px 20px;
+        font-size: 14px;
+        color: #212529;
+        border-bottom: 1px solid #f8f9fa;
+        vertical-align: middle;
+    }
+    .table th {
+        text-align: left;
+        font-size: 12px;
+        color: #6c757d;
+        font-weight: 600;
+        text-transform: uppercase;
+        background-color: #f8f9fa;
+    }
+    .status-badge {
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+        color: white;
+    }
+    .actions-cell {
+        display: flex;
+        gap: 8px;
+    }
+    .btn-action {
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        border: none;
+        cursor: pointer;
+    }
+    .btn-edit { background-color: #FFAFCC; color: #000; }
+    .btn-view { background-color: #6c757d; color: white; }
+    .btn-delete { background-color: #dc3545; color: white; }
+    .alert {
+        padding: 12px 16px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+    }
+    .alert-danger { background-color: #f8d7da; color: #721c24; }
+    .alert-success { background-color: #d4edda; color: #155724; }
+    .empty-state { text-align: center; padding: 60px 20px; color: #6c757d; }
+</style>
+
+<div class="container">
+    <div class="page-header">
+        <div class="page-info">
+            <h1>Pedidos</h1>
+            <p>Gerencie todos os pedidos de cestas.</p>
+        </div>
+        <a href="{% url 'novo_pedido' %}" class="btn-primary">
+            + Novo Pedido
+        </a>
+    </div>
+
+    {% if erro %}
+    <div class="alert alert-danger">{{ erro }}</div>
+    {% endif %}
+    {% if sucesso %}
+    <div class="alert alert-success">{{ sucesso }}</div>
+    {% endif %}
+
+    <form method="GET" class="search-section">
+        <input type="text" name="busca" class="search-input" placeholder="Buscar por cesta ou cliente..." value="{{ busca_atual }}">
+    </form>
+
+    <div class="pedidos-table">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Cesta</th>
+                    <th>Cliente</th>
+                    <th>Qtd.</th>
+                    <th>Valor Total</th>
+                    <th>Data</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pedido in pedidos %}
+                <tr>
+                    <td>{{ pedido.cesta_nome }}</td>
+                    <td>{{ pedido.cliente_nome }}</td>
+                    <td>{{ pedido.quantidade }}</td>
+                    <td>R$ {{ pedido.valor_total|floatformat:2 }}</td>
+                    <td>{{ pedido.dt_venda|date:"d/m/Y" }}</td>
+                    <td>
+                        {% if pedido.status == 'A' %}
+                            <span class="status-badge" style="background-color: #ffc107; color: #000;">Aguardando</span>
+                        {% elif pedido.status == 'P' %}
+                            <span class="status-badge" style="background-color: #17a2b8;">Produção</span>
+                        {% elif pedido.status == 'E' %}
+                            <span class="status-badge" style="background-color: #28a745;">Entregue</span>
+                        {% elif pedido.status == 'C' %}
+                            <span class="status-badge" style="background-color: #dc3545;">Cancelado</span>
+                        {% endif %}
+                    </td>
+                    <td class="actions-cell">
+                        <a href="{% url 'editar_pedido' pedido.id %}" class="btn-action btn-edit">✏️ Editar</a>
+                        <a href="{% url 'visualizar_pedido' pedido.id %}" target="_blank" class="btn-action btn-view">👁️ Visualizar</a>
+                        <a href="{% url 'confirmar_exclusao_pedido' pedido.id %}" class="btn-action btn-delete">🗑️ Excluir</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="empty-state">Nenhum pedido encontrado.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

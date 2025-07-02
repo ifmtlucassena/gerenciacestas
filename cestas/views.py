@@ -19,48 +19,52 @@ def listarCestas(request):
         conexao = conectar_banco()
         cursor = conexao.cursor()
         
-        query = """
-            SELECT DISTINCT c.Id_cesta, c.Nome, c.Preco_venda, c.URL_imagem, 
-                   c.Descricao, c.Observacoes,
-                   COUNT(DISTINCT cp.Id_produto) as total_produtos,
-                   STRING_AGG(DISTINCT cat.nome || ':' || cat.cor, ',') as categorias
-            FROM Cesta c
-            LEFT JOIN Cesta_Produto cp ON c.Id_cesta = cp.Id_cesta
-            LEFT JOIN Produto p ON cp.Id_produto = p.Id_produto
-            LEFT JOIN Categoria cat ON p.Id_categoria = cat.id_categoria
-            WHERE 1=1
-        """
+        query_cestas = "SELECT Id_cesta, Nome, Preco_venda, URL_imagem, Descricao, Observacoes FROM Cesta"
         parametros = {}
-        
         if busca:
-            query += " AND LOWER(c.Nome) LIKE %(busca)s"
+            query_cestas += " WHERE LOWER(Nome) LIKE %(busca)s"
             parametros['busca'] = f"%{busca.lower()}%"
-            
-        query += " GROUP BY c.Id_cesta, c.Nome, c.Preco_venda, c.URL_imagem, c.Descricao, c.Observacoes"
-        query += " ORDER BY c.Nome"
+        query_cestas += " ORDER BY Nome"
         
-        cursor.execute(query, parametros)
+        cursor.execute(query_cestas, parametros)
         
+        cestas_base = cursor.fetchall()
         cestas = []
-        for linha in cursor.fetchall():
-            categorias_info = []
-            if linha[7]:
-                for cat_info in linha[7].split(','):
-                    if ':' in cat_info:
-                        nome, cor = cat_info.split(':', 1)
-                        categorias_info.append({'nome': nome, 'cor': cor})
+
+        for cesta_item in cestas_base:
+            id_cesta = cesta_item[0]
             
+            query_produtos = """
+                SELECT cat.nome, cat.cor
+                FROM Cesta_Produto cp, Produto p, Categoria cat
+                WHERE cp.id_cesta = %s
+                AND cp.id_produto = p.id_produto
+                AND p.id_categoria = cat.id_categoria
+            """
+            cursor.execute(query_produtos, (id_cesta,))
+            produtos_da_cesta = cursor.fetchall()
+            
+            total_produtos = len(produtos_da_cesta)
+            categorias_info_set = set()
+            for prod in produtos_da_cesta:
+                categorias_info_set.add(f"{prod[0]}:{prod[1]}")
+
+            categorias_info = []
+            for cat_info in list(categorias_info_set):
+                nome, cor = cat_info.split(':', 1)
+                categorias_info.append({'nome': nome, 'cor': cor})
+
             cestas.append({
-                'id': linha[0],
-                'nome': linha[1],
-                'preco_venda': linha[2] if linha[2] else 0,
-                'url_imagem': linha[3] if linha[3] else '',
-                'descricao': linha[4] if linha[4] else '',
-                'observacoes': linha[5] if linha[5] else '',
-                'total_produtos': linha[6] if linha[6] else 0,
+                'id': cesta_item[0],
+                'nome': cesta_item[1],
+                'preco_venda': cesta_item[2] if cesta_item[2] else 0,
+                'url_imagem': cesta_item[3] if cesta_item[3] else '',
+                'descricao': cesta_item[4] if cesta_item[4] else '',
+                'observacoes': cesta_item[5] if cesta_item[5] else '',
+                'total_produtos': total_produtos,
                 'categorias': categorias_info
             })
-        
+
         cursor.close()
         conexao.close()
         
@@ -70,14 +74,10 @@ def listarCestas(request):
         context = {
             'nome_usuario': request.session.get('nome', 'Usuário'),
             'cestas': cestas,
-            'busca_atual': busca
+            'busca_atual': busca,
+            'sucesso': sucesso,
+            'erro': erro
         }
-        
-        if sucesso:
-            context['sucesso'] = sucesso
-        if erro:
-            context['erro'] = erro
-            
         return render(request, 'cestas/index.html', context)
         
     except Exception as e:
@@ -365,10 +365,10 @@ def buscarProdutos(request):
         
         query = """
             SELECT p.Id_produto, p.Nome, p.Preco_custo, p.URL_imagem,
-                   c.nome as categoria_nome, c.cor as categoria_cor
-            FROM Produto p
-            INNER JOIN Categoria c ON p.Id_categoria = c.id_categoria
-            WHERE c.id_usuario = %(id_usuario)s
+                   c.nome, c.cor
+            FROM Produto p, Categoria c
+            WHERE p.Id_categoria = c.id_categoria
+            AND c.id_usuario = %(id_usuario)s
         """
         parametros = {'id_usuario': request.session['id_usuario']}
         
@@ -421,10 +421,10 @@ def visualizarCesta(request, id_cesta):
         cursor.execute(
             """SELECT p.Id_produto, p.Nome, p.Preco_custo, p.URL_imagem,
                       cp.Quantidade, cat.nome, cat.cor
-               FROM Cesta_Produto cp
-               INNER JOIN Produto p ON cp.Id_produto = p.Id_produto
-               INNER JOIN Categoria cat ON p.Id_categoria = cat.id_categoria
+               FROM Cesta_Produto cp, Produto p, Categoria cat
                WHERE cp.Id_cesta = %(id_cesta)s
+               AND cp.Id_produto = p.Id_produto
+               AND p.Id_categoria = cat.id_categoria
                ORDER BY cat.nome, p.Nome""",
             {'id_cesta': id_cesta}
         )
@@ -486,10 +486,10 @@ def obterCestaPorId(id_cesta):
         cursor.execute(
             """SELECT p.Id_produto, p.Nome, p.Preco_custo, p.URL_imagem,
                       cp.Quantidade, cat.nome, cat.cor
-               FROM Cesta_Produto cp
-               INNER JOIN Produto p ON cp.Id_produto = p.Id_produto
-               INNER JOIN Categoria cat ON p.Id_categoria = cat.id_categoria
-               WHERE cp.Id_cesta = %(id_cesta)s""",
+               FROM Cesta_Produto cp, Produto p, Categoria cat
+               WHERE cp.Id_cesta = %(id_cesta)s
+               AND cp.Id_produto = p.Id_produto
+               AND p.Id_categoria = cat.id_categoria""",
             {'id_cesta': id_cesta}
         )
         

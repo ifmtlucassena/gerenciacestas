@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Detalhes do Pedido #{{ pedido.id }}</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: auto; padding: 20px; border: 1px solid #ccc; }
+        h1 { text-align: center; }
+        .info-section { margin-bottom: 20px; }
+        .info-section h2 { border-bottom: 2px solid #eee; padding-bottom: 5px; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .cesta-imagem { max-width: 150px; border-radius: 8px; }
+        .total { text-align: right; font-size: 1.5em; font-weight: bold; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Detalhes do Pedido #{{ pedido.id }}</h1>
+        <div class="info-section">
+            <p><strong>Data do Pedido:</strong> {{ pedido.dt_venda|date:"d/m/Y" }}</p>
+            <p><strong>Status:</strong> 
+                {% if pedido.status == 'A' %}Aguardando
+                {% elif pedido.status == 'P' %}Em Produção
+                {% elif pedido.status == 'E' %}Entregue
+                {% elif pedido.status == 'C' %}Cancelado
+                {% endif %}
+            </p>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-section">
+                <h2>Cliente</h2>
+                <p><strong>Nome:</strong> {{ pedido.cliente.nome }}</p>
+                <p><strong>Email:</strong> {{ pedido.cliente.email|default:'Não informado' }}</p>
+                <p><strong>Telefone:</strong> {{ pedido.cliente.telefone|default:'Não informado' }}</p>
+            </div>
+
+            <div class="info-section">
+                <h2>Cesta</h2>
+                {% if pedido.cesta.url_imagem %}
+                <img src="{{ pedido.cesta.url_imagem }}" alt="{{ pedido.cesta.nome }}" class="cesta-imagem">
+                {% endif %}
+                <p><strong>Nome:</strong> {{ pedido.cesta.nome }}</p>
+                <p><strong>Preço Unitário:</strong> R$ {{ pedido.cesta.preco_venda|floatformat:2 }}</p>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h2>Detalhes da Compra</h2>
+            <p><strong>Quantidade:</strong> {{ pedido.quantidade }}</p>
+            <p><strong>Para Presente:</strong> {% if pedido.presente == 'S' %}Sim{% else %}Não{% endif %}</p>
+        </div>
+
+        <div class="total">
+            Valor Total: R$ {{ pedido.valor_total|floatformat:2 }}
+        </div>
+    </div>
+    <script>
+        window.onload = function() {
+            window.print();
+        }
+    </script>
+</body>
+</html>
