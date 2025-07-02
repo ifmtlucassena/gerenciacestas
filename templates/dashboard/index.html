@@ -221,7 +221,7 @@
 
 <div class="container">
     <div class="page-header">
-        <h1 class="page-title">Bem-vindo ao Painel de Controle</h1>
+        <h1 class="page-title">Bem-vindo ao Painel de Controle, {{ nome_usuario }}!</h1>
         <p class="page-subtitle">Confira os principais números do seu sistema</p>
     </div>
 
@@ -231,7 +231,7 @@
                 <span class="stat-title">Total de Produtos</span>
                 <div class="stat-icon" style="background-color: #e3f2fd; color: #1976d2;">📦</div>
             </div>
-            <div class="stat-number">34</div>
+            <div class="stat-number">{{ total_produtos|default:0 }}</div>
             <div class="stat-description">Produtos cadastrados no sistema</div>
         </div>
 
@@ -240,7 +240,7 @@
                 <span class="stat-title">Categorias</span>
                 <div class="stat-icon" style="background-color: #f3e5f5; color: #7b1fa2;">📂</div>
             </div>
-            <div class="stat-number">7</div>
+            <div class="stat-number">{{ total_categorias|default:0 }}</div>
             <div class="stat-description">Categorias de produtos</div>
         </div>
 
@@ -249,7 +249,7 @@
                 <span class="stat-title">Cestas Montadas</span>
                 <div class="stat-icon" style="background-color: #e8f5e8; color: #388e3c;">🧺</div>
             </div>
-            <div class="stat-number">5</div>
+            <div class="stat-number">{{ total_cestas|default:0 }}</div>
             <div class="stat-description">Cestas e tábuas personalizadas</div>
         </div>
 
@@ -258,7 +258,7 @@
                 <span class="stat-title">Estoque Baixo</span>
                 <div class="stat-icon" style="background-color: #fff3e0; color: #f57c00;">⚠️</div>
             </div>
-            <div class="stat-number">5</div>
+            <div class="stat-number">{{ total_estoque_baixo|default:0 }}</div>
             <div class="stat-description">Produtos com menos de 5 unidades</div>
         </div>
     </div>
@@ -271,7 +271,7 @@
                     <div class="financial-icon" style="background-color: #f3e5f5; color: #7b1fa2;">💰</div>
                     <span class="financial-title">Valor Total em Estoque</span>
                 </div>
-                <div class="financial-value">R$ 921,00</div>
+                <div class="financial-value">R$ {{ valor_total_estoque|floatformat:2|default:"0,00" }}</div>
             </div>
 
             <div class="financial-card">
@@ -279,7 +279,7 @@
                     <div class="financial-icon" style="background-color: #e3f2fd; color: #1976d2;">📈</div>
                     <span class="financial-title">Ticket Médio</span>
                 </div>
-                <div class="financial-value">R$ 168,00</div>
+                <div class="financial-value">R$ {{ ticket_medio|floatformat:2|default:"0,00" }}</div>
             </div>
 
             <div class="financial-card">
@@ -287,7 +287,7 @@
                     <div class="financial-icon" style="background-color: #f8d7da; color: #d63384;">🛒</div>
                     <span class="financial-title">Valor Total em Cestas</span>
                 </div>
-                <div class="financial-value">R$ 840,00</div>
+                <div class="financial-value">R$ {{ valor_total_cestas|floatformat:2|default:"0,00" }}</div>
             </div>
         </div>
     </div>
@@ -306,31 +306,17 @@
                     </tr>
                 </thead>
                 <tbody>
+                    {% for nome, preco, data in ultimas_cestas %}
                     <tr>
-                        <td>Caixa de Lembranças</td>
-                        <td>R$ 70,00</td>
-                        <td>10/02/2025</td>
+                        <td>{{ nome }}</td>
+                        <td>R$ {{ preco|floatformat:2 }}</td>
+                        <td>{{ data|date:"d/m/Y" }}</td>
                     </tr>
+                    {% empty %}
                     <tr>
-                        <td>Café da Manhã Premium</td>
-                        <td>R$ 200,00</td>
-                        <td>10/02/2025</td>
+                        <td colspan="3" style="text-align: center; padding: 20px;">Nenhuma cesta criada recentemente.</td>
                     </tr>
-                    <tr>
-                        <td>Café da Manhã Simples</td>
-                        <td>R$ 120,00</td>
-                        <td>10/02/2025</td>
-                    </tr>
-                    <tr>
-                        <td>Gourmet Premium</td>
-                        <td>R$ 280,00</td>
-                        <td>10/02/2025</td>
-                    </tr>
-                    <tr>
-                        <td>Gourmet Simples</td>
-                        <td>R$ 170,00</td>
-                        <td>10/02/2025</td>
-                    </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>
@@ -338,7 +324,7 @@
         <div class="table-card">
             <div class="table-header">
                 <h3 class="table-title">Produtos com Estoque Baixo</h3>
-                <span class="badge">5</span>
+                {% if total_estoque_baixo > 0 %}<span class="badge">{{ total_estoque_baixo }}</span>{% endif %}
             </div>
             <table class="table">
                 <thead>
@@ -349,31 +335,17 @@
                     </tr>
                 </thead>
                 <tbody>
+                    {% for nome, categoria, estoque in produtos_estoque_baixo %}
                     <tr>
-                        <td>Waffle Doce</td>
-                        <td>Pães</td>
-                        <td><span class="stock-badge">0 un</span></td>
+                        <td>{{ nome }}</td>
+                        <td>{{ categoria }}</td>
+                        <td><span class="stock-badge">{{ estoque }} un</span></td>
                     </tr>
+                    {% empty %}
                     <tr>
-                        <td>Baguete</td>
-                        <td>Pães</td>
-                        <td><span class="stock-badge">0 un</span></td>
+                        <td colspan="3" style="text-align: center; padding: 20px;">Nenhum produto com estoque baixo.</td>
                     </tr>
-                    <tr>
-                        <td>Suco de uva</td>
-                        <td>Bebidas</td>
-                        <td><span class="stock-badge">0 un</span></td>
-                    </tr>
-                    <tr>
-                        <td>Vinho tinto suave</td>
-                        <td>Bebidas</td>
-                        <td><span class="stock-badge">0 un</span></td>
-                    </tr>
-                    <tr>
-                        <td>Uva verde</td>
-                        <td>Frutas</td>
-                        <td><span class="stock-badge">0 un</span></td>
-                    </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>
