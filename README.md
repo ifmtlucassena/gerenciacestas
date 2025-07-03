@@ -1,3 +1,5 @@
-ALTER TABLE categoria ADD COLUMN cor VARCHAR(7);
-ALTER TABLE Cesta ADD COLUMN IF NOT EXISTS Descricao TEXT;
-ALTER TABLE Cesta ADD COLUMN IF NOT EXISTS Observacoes TEXT;
+ # GerenciaCestas
+
+Para rodar o projeto, crie um banco de dados com o nome `gerenciacestas`.  
+Se precisar alterar as configurações do banco, edite o arquivo `.env`.  
+Para criar as tabelas, execute o script `database.sql`.
