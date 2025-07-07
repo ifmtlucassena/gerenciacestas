@@ -348,7 +348,14 @@ def excluirCesta(request, id_cesta):
     try:
         conexao = conectar_banco()
         cursor = conexao.cursor()
-        
+
+        cursor.execute("SELECT COUNT(*) FROM Venda WHERE Id_cesta = %(id_cesta)s", {'id_cesta': id_cesta})
+        if cursor.fetchone()[0] > 0:
+            cursor.close()
+            conexao.close()
+            request.session['erro'] = 'Não é possível excluir esta cesta, pois ela já está vinculada a um pedido existente.'
+            return redirect('cestas')
+
         cursor.execute("DELETE FROM Cesta_Produto WHERE Id_cesta = %(id_cesta)s", {'id_cesta': id_cesta})
         cursor.execute("DELETE FROM Cesta WHERE Id_cesta = %(id_cesta)s", {'id_cesta': id_cesta})
         
@@ -360,6 +367,7 @@ def excluirCesta(request, id_cesta):
         return redirect('cestas')
         
     except Exception as e:
+        conexao.close()
         request.session['erro'] = f'Erro ao excluir cesta: {str(e)}'
         return redirect('cestas')
 

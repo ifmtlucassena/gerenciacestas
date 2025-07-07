@@ -325,6 +325,8 @@ def excluirProduto(request, id_produto):
         conexao = conectar_banco()
         cursor = conexao.cursor()
         
+        cursor.execute("DELETE FROM Cesta_Produto WHERE Id_produto = %(id_produto)s", {'id_produto': id_produto})
+        
         cursor.execute("DELETE FROM Produto WHERE Id_produto = %(id_produto)s", {'id_produto': id_produto})
         
         conexao.commit()
@@ -335,7 +337,8 @@ def excluirProduto(request, id_produto):
         return redirect('produtos')
         
     except Exception as e:
-        request.session['erro'] = f'Erro ao excluir produto: {str(e)}'
+        conexao.close()
+        request.session['erro'] = f'Erro ao excluir produto. O produto pode estar associado a outros registros.'
         return redirect('produtos')
 
 def obterCategoriasDoUsuario(id_usuario):
