@@ -1,5 +1,5 @@
 import hashlib
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from autenticacao.database import conectar_banco
 
 def visualizarTelaCadastro(request):
@@ -104,9 +104,7 @@ def visualizarTelaLogin(request):
                 conexao.close()
             
                 nome_usuario = request.session.get('nome', 'Usuário')
-                return render(request, 'dashboard/index.html', {
-                    'nome_usuario': nome_usuario
-                })
+                return redirect('dashboard')
             
             cursor.close()
             conexao.close()

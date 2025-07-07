@@ -9,6 +9,7 @@ def listarPedidos(request):
         return render(request, 'autenticacao/login.html', {'erro': 'Você precisa fazer login para acessar o sistema'})
 
     busca = request.GET.get('busca', '')
+    id_usuario = request.session.get('id_usuario')
     
     try:
         conexao = conectar_banco()
@@ -19,8 +20,14 @@ def listarPedidos(request):
             FROM Venda v, Cesta c, Cliente cli
             WHERE v.Id_cesta = c.Id_cesta
             AND v.Id_cliente = cli.Id_cliente
+            AND v.Id_cesta IN (
+                SELECT DISTINCT cp.Id_cesta FROM Cesta_Produto cp, Produto p, Categoria cat
+                WHERE cp.id_produto = p.id_produto
+                AND p.id_categoria = cat.id_categoria
+                AND cat.id_usuario = %(id_usuario)s
+            )
         """
-        parametros = {}
+        parametros = {'id_usuario': id_usuario}
         
         if busca:
             query += " AND (LOWER(c.Nome) LIKE %(busca)s OR LOWER(cli.Nome) LIKE %(busca)s)"

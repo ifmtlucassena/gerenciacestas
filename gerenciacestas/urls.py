@@ -19,16 +19,13 @@ from django.urls import include, path
 
 from django.contrib import admin
 from django.urls import include, path
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 
 def verificar_acesso(request):
     if 'id_usuario' in request.session:
-        nome_usuario = request.session.get('nome', 'Usuário')
-        return render(request, 'dashboard/index.html', {
-            'nome_usuario': nome_usuario
-        })
+        return redirect('dashboard')
     else:
-        return render(request, 'autenticacao/login.html')
+        return redirect('login')
 
 urlpatterns = [
     path('admin/', admin.site.urls),

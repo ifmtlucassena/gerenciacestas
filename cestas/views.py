@@ -6,7 +6,6 @@ import os
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from datetime import date
-
 def listarCestas(request):
     if 'id_usuario' not in request.session:
         return render(request, 'autenticacao/login.html', {
@@ -14,16 +13,27 @@ def listarCestas(request):
         })
     
     busca = request.GET.get('busca', '')
+    id_usuario = request.session.get('id_usuario')
     
     try:
         conexao = conectar_banco()
         cursor = conexao.cursor()
         
-        query_cestas = "SELECT Id_cesta, Nome, Preco_venda, URL_imagem, Descricao, Observacoes FROM Cesta"
-        parametros = {}
+        query_cestas = """
+            SELECT Id_cesta, Nome, Preco_venda, URL_imagem, Descricao, Observacoes FROM Cesta
+            WHERE Id_cesta IN (
+                SELECT DISTINCT cp.Id_cesta FROM Cesta_Produto cp, Produto p, Categoria c
+                WHERE cp.id_produto = p.id_produto
+                AND p.id_categoria = c.id_categoria
+                AND c.id_usuario = %(id_usuario)s
+            )
+        """
+        parametros = {'id_usuario': id_usuario}
+
         if busca:
-            query_cestas += " WHERE LOWER(Nome) LIKE %(busca)s"
+            query_cestas += " AND LOWER(Nome) LIKE %(busca)s"
             parametros['busca'] = f"%{busca.lower()}%"
+        
         query_cestas += " ORDER BY Nome"
         
         cursor.execute(query_cestas, parametros)
