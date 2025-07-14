@@ -6,6 +6,7 @@ import os
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from datetime import date
+
 def listarCestas(request):
     if 'id_usuario' not in request.session:
         return render(request, 'autenticacao/login.html', {

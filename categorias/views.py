@@ -54,7 +54,7 @@ def listarCategorias(request):
 def novaCategoria(request):
     if 'id_usuario' not in request.session:
         return render(request, 'autenticacao/login.html', {
-            'erro': 'Você precisa fazer login para acessar o sistema'
+            'erro': 'Você precisa fazer login para acessar o sistema!'
         })
     
     if request.method == 'POST':
@@ -115,7 +115,7 @@ def editarCategoria(request, id_categoria):
     
     # Verificar se a categoria pertence ao usuário
     if not verificarPropriedadeCategoria(id_categoria, request.session['id_usuario']):
-        request.session['erro'] = 'Categoria não encontrada ou você não tem permissão para editá-la'
+        request.session['erro'] = 'Categoria não encontrada ou você não tem permissão para editá-la!'
         return redirect('categorias')
     
     if request.method == 'POST':
@@ -212,15 +212,21 @@ def excluirCategoria(request, id_categoria):
             'erro': 'Você precisa fazer login para acessar o sistema'
         })
     
-    # Verificar se a categoria pertence ao usuário
     if not verificarPropriedadeCategoria(id_categoria, request.session['id_usuario']):
-        request.session['erro'] = 'Categoria não encontrada ou você não tem permissão para excluí-la'
+        request.session['erro'] = 'Categoria não encontrada ou você não tem permissão para excluí-la!'
         return redirect('categorias')
     
     try:
         conexao = conectar_banco()
         cursor = conexao.cursor()
         
+        cursor.execute("SELECT COUNT(*) FROM Produto WHERE id_categoria = %(id_categoria)s", {'id_categoria': id_categoria})
+        if cursor.fetchone()[0] > 0:
+            cursor.close()
+            conexao.close()
+            request.session['erro'] = 'Não é possível excluir esta categoria, pois ela já possui produtos cadastrados!'
+            return redirect('categorias')
+
         cursor.execute(
             "DELETE FROM categoria WHERE id_categoria = %(id_categoria)s AND id_usuario = %(id_usuario)s",
             {
@@ -233,14 +239,14 @@ def excluirCategoria(request, id_categoria):
         cursor.close()
         conexao.close()
         
-        # Salva mensagem na sessão e redireciona
         request.session['sucesso'] = 'Categoria excluída com sucesso!'
         return redirect('categorias')
         
     except Exception as e:
+        conexao.close()
         request.session['erro'] = f'Erro ao excluir categoria: {str(e)}'
         return redirect('categorias')
-
+    
 def obterCategorias(id_usuario):
     try:
         conexao = conectar_banco()
